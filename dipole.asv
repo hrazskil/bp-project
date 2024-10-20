@@ -1,50 +1,23 @@
 clc
 clear
-dip.pos=[0;0;0];
-dip.phase = pi/4;
-dip.mom=[0;0;1];
+
+dip.pos = rand(6,3);
+dip.dir = rand(6,3);
+
+
+complAmpl = rand(6,1)+  1i*rand(6,1);
+f = 1e9;
+
+rObserved=rand(10,3);
 
 
 
+%% 
 
-rObserved=[0;1;2];
-
-phase = dip.phase;
-rSource = dip.pos;
-dipoleMoment= dip.mom;
 tic
-%*eleField Summary o
-% f this function goes here
-%   Detailed explanation goes here
-c0=3.0e+08;
-k=phase/c0;
-R=(rObserved-rSource);
-nR=norm(R);
-dirR=R./nR;
-[~,theta,r] = cart2sph(R(1,:),R(2,:),R(3,:));
-eZ= dipoleMoment.*(c0*k^3*( dirR.*(cos(theta)*2*( 1/(k^2*r^2) + 1i/(k*r)) ) + [0; 1; 0]*sin(theta)*( -1 + 1/(k^2*r^2) + 1i/(k*r) ) )*exp(-1i*k*r)/(4*pi*k*r))
-toc
-%ELEFIELDSPHERICAL Summary of this function goes here
-%   Detailed explanation goes here
-dipoleMoment=dip.mom;
-tic
-c0= 3.0e+08;
-k=phase/c0;
-R=rObserved-rSource;
-nR=norm(R);
-dirR=R./nR;
-e=[0;0;1].*(c0*k^3*( cross(-(dirR),cross((dirR),dipoleMoment)) + (3*(dirR)*(dot(dipoleMoment,dirR) -dipoleMoment) * (1/(k^2*nR^2) + 1i*(1/(k*nR))) )*exp(-1i*k*nR)/(4*pi*k*nR))
-
+[eZ] = fieldEvaluation.eleField(rObserved,dip,f,complAmpl);
 toc
 
-% Define the vectors
-A = [1, 2, 3];
-B = [4, 5, 6];
-
-% Method 1: Using dot function
 tic
-result1 = dot(A, B);
+[eZ] = fieldEvaluation.eleField(rObserved,dip,f,complAmpl);
 toc
-
-% Method 2: Using * operator
-result2 = A * B';  % If A is row and B is column
