@@ -1,9 +1,7 @@
-function [outputArg1,outputArg2] = powerFar(inputArg1,inputArg2)
+function [pow] = powerFar(eleField)
 %POWERFAR Summary of this function goes here
 %   Detailed explanation goes here
-construct   = utilities.constants.giveConstants;
-1/(2*construct.Z0)(abs()^2)
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+const.utilities.constants.giveConstants;
+pow = 1/(2*const.Z0)*(abs(eleField).^2);
 end
 

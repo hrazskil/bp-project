@@ -1,0 +1,60 @@
+clc
+clear
+nDip=2;
+dip.pos = rand(nDip,3);
+dip.dir = rand(nDip,3);
+complAmpl = rand(nDip,1)+  1i*rand(nDip,1);
+
+f = 10000;
+
+nObs=5;
+rObserved=rand(nObs,3);
+%%
+% tic
+% [eZ] = fieldEvaluation.eleField(rObserved,dip,f,complAmpl);
+% toc
+%
+% tic
+% [eM] = fieldEvaluation.magField(rObserved,dip,f,complAmpl);
+% toc
+
+
+% tic
+% [eM] = fieldEvaluation.magField(rObserved,dip,f,complAmpl);
+% toc
+
+% tic
+% [eM] = fieldEvaluation.magField(rObserved,dip,f,complAmpl);
+% toc
+%
+
+%inicialization
+construct   = utilities.constants.giveConstants;
+nDip = size(dip.pos,1);
+nObs = size(rObserved,1);
+mF          = nan(nObs,nDip,3);     % Preallocate
+MatrixRVec  = zeros(nObs,nDip,3);   % Preallocate
+R           = zeros(nObs,nDip);
+dirR        = zeros(nObs,nDip,3);
+omega       = 2*pi*f;
+k           = omega/construct.c0;
+
+
+%%
+
+MatrixRVec  = reshape( repmat(rObserved,nDip,1) ,nObs, [],3) -...
+    permute( reshape( repmat(dip.pos,nObs,1) ,nDip,[],3) ,[2 1 3]);
+R           = utilities.rowNormAccrossM(MatrixRVec);
+dirR        = MatrixRVec./R;
+%%
+MatrixDDir  = permute( reshape( repmat(dip.dir,nObs,1) ,nDip,[],3) ...
+    ,[2 1 3]);
+
+
+
+p       = repmat(complAmpl,[nObs,1]).*( ...
+    MatrixDDir./repmat(utilities.rowNorm(dip.dir),[1,nObs])' );
+
+%     mF(iObs,:) = sum(construct.c0*k^3*exp(-1i*k*R)./(4*pi*k*R) .*(...
+%         cross((dirR),p,2) + (1./(k*R*1i)+1) ) ,1);
+
