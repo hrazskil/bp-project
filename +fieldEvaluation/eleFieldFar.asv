@@ -14,11 +14,8 @@ k           = omega/construct.c0;
 
 
 Rvec        = repmat(rObserved,[size(dip.pos,1),1])-dip.pos;
-
 [~,thetaDDir,~]= utilities.transforms.cart2sph0(dip.dir(1,:),dip.dir(2,:),dip.dir(3,:));
-
 [~,theta0,~]= utilities.transforms.cart2sph0(Rvec(1,:),Rvec(2,:),Rvec(3,:));
-
 [r,theta,~] = utilities.transforms.cart2sphKH(Rvec(1,:),Rvec(2,:),Rvec(3,:));
 
        

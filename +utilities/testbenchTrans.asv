@@ -1,0 +1,54 @@
+%% cleaning
+clc
+clear
+%% inicialization for alpha testing transformation functions
+rObserved= [0 0 0;...
+            1 0 0;...
+            0 1 0;...
+            0 0 1;...
+            1 1 0;...
+            0 1 1;...
+            1 0 1;...
+            1 1 1];
+%% inicialization for beta testing transformation functions
+nObs=100;
+rObserved=rand(nObs,3);
+
+rObsZero=rObserved.*(1./(rObserved(:,1)+rObserved(:,2)+rObserved(:,3)));
+%% testing transformation functions
+
+[sphRObs(:,1),sphRObs(:,2),sphRObs(:,3)] = ...
+utilities.cart2sphKH(rObserved(:,1),rObserved(:,2),rObserved(:,3));
+
+[rObsN(:,1),rObsN(:,2),rObsN(:,3)] = ...
+utilities.sph2cartKH(sphRObs(:,1),sphRObs(:,2),sphRObs(:,3));
+
+errorRObs   = rObsN-rObserved;
+
+% dir
+[r0, theta0, phi0] = ...
+utilities.cart2sph0(rObserved(:,1),rObserved(:,2),rObserved(:,3));
+
+[x0, y0, z0] = ...
+utilities.sph2cart0(sphRObs(:,1),sphRObs(:,2),sphRObs(:,3));
+
+% errorRObs=rObsN-rObserved
+%% visualization 
+% Original coordinates
+size(rObserved(:,1),1)
+
+figure;
+quiver3(zeros(size(rObserved,1),1rObserved(:,1), rObserved(:,2), rObserved(:,3), 'filled', 'r');
+hold on;
+% Error vectors
+quiver3(rObserved(:,1), rObserved(:,2), rObserved(:,3), ...
+    r0(:,1), r0(:,2), r0(:,3),'k', 'LineWidth', 1);
+
+% Labels and legend
+xlabel('X-axis');
+ylabel('Y-axis');
+zlabel('Z-axis');
+title('3D Scatter Plot of Observed and Transformed Coordinates');
+legend('Observed', 'Unit Vectors');
+grid on;
+hold off;

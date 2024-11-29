@@ -1,7 +1,9 @@
 function [powerRad] = powerRadiated(f,complAmpl)
 
-%POWERRADIATED calculation of the full power radiated by the dipoles
+% powerRad = calculated power radiated by the dipoles whose dipole
+% moment magnitudes are submited via the ComplAmpl vector
 % f = frequency
+% ComplAmpl = vector containing the magnitudes of the dipole moments of individual dipoles
 
 construct   = utilities.constants.giveConstants;
 omega       = 2*pi*f;

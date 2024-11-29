@@ -1,0 +1,82 @@
+%% cleaning
+clc
+clear
+% %the transformation matrix from Cartesian to spherical
+% T = [sthe * cphi, cthe * cphi, -sphi;
+%      sthe * sphi, cthe * sphi, cphi;
+%      cthe, -sthe, 0];
+% %the transformation matrix from spherical to Cartesian
+% T = [sthe * cphi, sthe * sphi, cthe;
+%     cthe * cphi, cthe * sphi, -sthe;
+%     -sphi, cphi, 0];
+%% inicialization for alpha testing transformation functions
+rObserved= [0 0 0;...
+            1 0 0;...
+            0 1 0;...
+            0 0 1;...
+            1 1 0;...
+            0 1 1;...
+            1 0 1;...
+            1 1 1];
+%% inicialization for beta testing transformation functions
+% nObs=100;
+% rObserved=rand(nObs,3);
+% 
+% rObsZero=rObserved.*(1./(rObserved(:,1)+rObserved(:,2)+rObserved(:,3)));
+%% testing transformation functions
+
+[sphRObs(:,1),sphRObs(:,2),sphRObs(:,3)] = ...
+utilities.cart2sphKH(rObserved(:,1),rObserved(:,2),rObserved(:,3));
+
+
+% dir
+[r0, theta0, phi0] = ...
+utilities.cart2sph0(rObserved(:,1),rObserved(:,2),rObserved(:,3));
+
+[x0, y0, z0] = ...
+utilities.sph2cart0(sphRObs(:,2),sphRObs(:,3));
+
+% errorRObs=rObsN-rObserved
+%% visualization 
+% Original coordinates
+size(rObserved(:,1),1)
+
+figure;
+quiver3(zeros(size(rObserved,1),1),zeros(size(rObserved,1),1),zeros(size(rObserved,1),1),rObserved(:,1), rObserved(:,2), rObserved(:,3), 'filled', 'k');
+hold on;
+% Error vectors
+quiver3(rObserved(:,1), rObserved(:,2), rObserved(:,3), ...
+    theta0(:,1), theta0(:,2), theta0(:,3),'b', 'LineWidth', 1);
+
+% Labels and legend
+xlabel('X-axis');
+ylabel('Y-axis');
+zlabel('Z-axis');
+title('3D Scatter Plot of Observed and Transformed Coordinates');
+legend('Observed', 'Unit Vectors');
+grid on;
+hold off;
+
+%%
+
+% dir
+[r02, theta02, phi02] = ...
+utilities.sph2sph0(sphRObs(:,2),sphRObs(:,3));
+
+figure;
+quiver3(zeros(size(rObserved,1),1),zeros(size(rObserved,1),1),zeros(size(rObserved,1),1),rObserved(:,1), rObserved(:,2), rObserved(:,3), 'filled', 'k');
+hold on;
+% Error vectors
+quiver3(rObserved(:,1), rObserved(:,2), rObserved(:,3), ...
+    theta02(:,1), theta02(:,2), theta02(:,3),'b', 'LineWidth', 1);
+
+% Labels and legend
+xlabel('X-axis');
+ylabel('Y-axis');
+zlabel('Z-axis');
+title('3D Scatter Plot of Observed and Transformed Coordinates');
+legend('Observed', 'Unit Vectors');
+grid on;
+hold off;
+%%
+

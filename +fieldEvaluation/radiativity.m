@@ -1,4 +1,4 @@
-function [out] = radiativity(inputArg1,inputArg2)
+function [out] = radiativity(inputArg1,powerRadiated)
 %RADIATIVITY Summary of this function goes here
 %   Detailed explanation goes here
 

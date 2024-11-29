@@ -1,43 +1,20 @@
 %% cleaning
 clc
 clear
-%% inicialization for testing functions
+%% inicialization for testing 
 
 nDip=2;
-dip.pos = rand(nDip,3);
-dip.dir = rand(nDip,3);
-complAmpl = rand(nDip,1)+  1i*rand(nDip,1);
+dip.pos     = rand(nDip,3);
+dip.dir     = rand(nDip,3);
+complAmpl   = rand(nDip,1)+  1i*rand(nDip,1);
 
 
-f = 10000;
+f           = 10000;
 
-nObs=100;
-rObserved=rand(nObs,3);
+nObs        = 10;
+rObserved   = rand(nObs,3);
 
-%% inicialization for alpha testing transformation functions
-rObserved= [0 0 0;...
-            1 0 0;...
-            0 1 0;...
-            0 0 1;...
-            1 1 0;...
-            0 1 1;...
-            1 0 1;...
-            1 1 1];
-%% inicialization for beta testing transformation functions
-nObs=100;
-rObserved=rand(nObs,3);
-%% testing transformation functions
-
-[sphRObs(:,1),sphRObs(:,2),sphRObs(:,3)] = ...
-utilities.cart2sphKH(rObserved(:,1),rObserved(:,2),rObserved(:,3));
-
-[rObsN(:,1),rObsN(:,2),rObsN(:,3)] = ...
-utilities.sph2cartKH(sphRObs(:,1),sphRObs(:,2),sphRObs(:,3));
-
-errorRObs=rObsN-rObserved
-
-
-    %%
+    %% tests of functions
 tic
 [eF] = fieldEvaluation.eleField(rObserved,dip,f,complAmpl);
 toc

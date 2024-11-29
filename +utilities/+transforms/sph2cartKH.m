@@ -4,7 +4,5 @@ function [x,y,z] = sph2cartKH(r,theta,phi)
 x       = r.*cos(phi).*sin(theta);
 y       = r.*sin(phi).*sin(theta);
 z       = r.*cos(theta);
-x(x < 1e-16)=0;
-z(z < 1e-16)=0;
 end
 
