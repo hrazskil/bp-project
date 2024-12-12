@@ -1,4 +1,4 @@
-function [mF] = magField(rObserved,dip,f,complAmpl)
+function [mF] = magField(rObserved,dip,f)
 %MAGFIELD Summary goes here
 %inicialization
 construct   = utilities.constants.giveConstants;
@@ -13,7 +13,7 @@ k           = omega/construct.c0;
     Rvec    = repmat(rObserved(iObs,:),[size(dip.pos,1),1])-dip.pos;
     R       = repmat(utilities.rowNorm(Rvec),[1,3]);
     dirR    = Rvec./R;
-    p       = repmat(complAmpl,[1,3]).*dip.dir;
+    p       = repmat(dip.complAmpl,[1,3]).*dip.dir;
 
     mF(iObs,:) = sum(exp(-1i*k*R)./(4*pi*R) .*(...
         cross(dirR,p,2).*(1-1*i./(k*R))),1);

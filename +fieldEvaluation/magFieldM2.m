@@ -1,9 +1,8 @@
-function [eM] = magFieldM2(rObserved,dip,f,complAmpl)
+function [eM] = magFieldM2(rObserved,dip,f)
 %MAGFIELDM Summary of this function goes here
 %inicialization
 nDip    = size(dip.pos,1);
 nObs    = size(rObserved,1);
-eM     = nan(nObs,3);
 
 %constants
 construct = utilities.constants.giveConstants;
@@ -15,7 +14,7 @@ MRVec   = repmat(rObserved,nDip,1) - repelem(dip.pos,nObs,1);
 MR      = utilities.rowNorm(MRVec);
 MdirR   = MRVec./MR;
 
-Mp      = repelem(complAmpl,nObs,1) .* (repelem(dip.dir,nObs,1));
+Mp      = repelem(dip.complAmpl,nObs,1) .* (repelem(dip.dir,nObs,1));
 
 IMR     = 1i*k*MR;
 

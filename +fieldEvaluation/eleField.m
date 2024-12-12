@@ -1,4 +1,4 @@
-function [eF] = eleField(rObserved,dip,f,complAmpl)
+function [eF] = eleField(rObserved,dip,f)
 %   eleField Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -17,10 +17,10 @@ k           = omega/construct.c0;
     R       = repmat(utilities.rowNorm(Rvec),[1,3]);
     dirR    = Rvec./R;
     
-    p       = repmat(complAmpl,[1,3]).*dip.dir;
+    p       = repmat(dip.complAmpl,[1,3]).*dip.dir;
 
-    eF(iObs,:) = sum(construct.Z0*construct.c0*k^2* ...
-    exp(-1i*k*R)./(4*pi*R) .*( cross(-(dirR),cross((dirR),p,2),2) + ...
+    eF(iObs,:) = sum(construct.Z0*construct.c0*k^2*exp(-1i*k*R)./(4*pi*R)...
+    .*( cross(-(dirR),cross((dirR),p,2),2) + ...
     ( (3*(dirR).*(dot(dirR,p,2))-p) .* (1./(k^2*R.^2)+(1i./(k*R))) ) ),1);
     end
 end

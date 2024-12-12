@@ -1,4 +1,4 @@
-function [powerRad] = powerRadiated(f,complAmpl)
+function [powerRad] = powerRadiated(f,dip)
 
 % powerRad = calculated power radiated by the dipoles whose dipole
 % moment magnitudes are submited via the ComplAmpl vector
@@ -10,6 +10,6 @@ omega       = 2*pi*f;
 k           = omega/construct.c0;
 
 powerRad    = (construct.c0^2*construct.Z0*k^4/(12*pi))* ...
-            sum(abs(complAmpl).^2,1);
+            sum(abs(dip.complAmpl).^2,1);
 end
 
