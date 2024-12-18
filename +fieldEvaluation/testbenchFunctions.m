@@ -1,7 +1,6 @@
-%% cleaning
-clc
-clear
-
+% Cleaning
+clc; % Clear the command window
+clear; % Clear all variables from the workspace
 %% inicialization for testing functions
 nDip=1;
 dip.pos     = [0.4,0.3,0.7];

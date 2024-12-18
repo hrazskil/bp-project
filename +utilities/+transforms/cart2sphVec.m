@@ -1,13 +1,23 @@
-function [Fr,Fth,Fph] = cart2sphVec(x,y,z, Fx, Fy, Fz)
-%CART2SPH0 Summary of this function goes here
-%   Detailed explanation goes here
+function [F_r, F_theta, F_phi] = cart2sphVec(x, y, z, F_x, F_y, F_z)
+    % CART2SPHVEC Converts Cartesian coordinates and vector components to spherical coordinates.
+    % Inputs:
+    %  x,y,z        - Cartesian coordinates
+    %  F_x,F_y,F_z  - Components of the vector in Cartesian coordinates
+    % Outputs:
+    %  F_r      - Radial component of the vector
+    %  F_theta  - Polar (theta) component of the vector
+    %  F_phi    - Azimuthal (phi) component of the vector
+  
+    % Repeated calculations for radius and xy-plane distance
+    r = sqrt(x.^2 + y.^2 + z.^2);   % Radial distance from the origin
+    xy = sqrt(x.^2 + y.^2);         % Distance in the xy-plane
 
-% repeated calculations
-r       = sqrt(x.^2 + y.^2 + z.^2);
-xy      = sqrt(x.^2 + y.^2);
-
-% Calculate
-Fr = (x.*Fx + y.*Fy + z.*Fz)./r;
-Fth = (Fx.*z.*x + Fy.*z.*y -Fz.*xy.^2)./(r.*xy);
-Fph = (-Fx.*y + Fy.*x)./xy;
+    % Calculate the radial component of the vector
+    F_r = (x.*F_x + y.*F_y + z.*F_z) ./ r;
+    
+    % Calculate the Polar component of the vector
+    F_theta = (F_x.*z.*x + F_y.*z.*y - F_z.*xy.^2) ./ (r.*xy);
+    
+    % Calculate the azimuthal component of the vector
+    F_phi = (-F_x.*y + F_y.*x) ./ xy;
 end

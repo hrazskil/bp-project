@@ -1,23 +1,31 @@
 function [fF] = farField(rObserved,dip,f)
-%ELEFIELDFAR Summary of this function goes here
-%   Detailed explanation goes here
-%inicialization
-nDip    = size(dip.pos,1);
-nObs    = size(rObserved,1);
+% ELEFIELDFAR Computes the far-field radiation pattern from dipoles.
+% Inputs:
+%   rObserved - Nx3 matrix of observed positions (x, y, z)
+%   dip - structure containing dipole properties (positions, amplitudes, directions)
+%   f - frequency of the source
+% Output:
+%   fF - far-field radiation pattern (3xM matrix)
 
-%constants
-construct = utilities.constants.giveConstants;
-omega   = 2*pi*f;
-k       = omega/construct.c0;
+% Initialization
+nDip = size(dip.pos, 1);                                                    % Number of dipoles
+nObs = size(rObserved, 1);                                                  % Number of observed points
 
+% Constants
+construct = utilities.constants.giveConstants;                              % Retrieve physical constants
+omega = 2 * pi * f;                                                         % Angular frequency
+k = omega / construct.c0;                                                   % Wave number (k = omega/c)
 
-r0 = rObserved./repmat(utilities.rowNorm(rObserved),[1,3]);
-r0 = repmat(r0,[nDip,1]);
+% Normalize observed positions
+r0 = rObserved ./ repmat(utilities.rowNorm(rObserved), [1, 3]);             % Normalize each observed position
+r0 = repmat(r0, [nDip, 1]);                                                 % Repeat for each dipole
 
-Mp      = repelem(dip.complAmpl,nObs,1) .* (repelem(dip.dir,nObs,1));
+% Compute the multipole moment
+Mp = repelem(dip.complAmpl, nObs, 1) .* (repelem(dip.dir, nObs, 1));        % Combine amplitude and direction for each dipole
 
-fF     = construct.Z0*construct.c0*k^2.*exp(1i*k*sum(r0 .* repelem(dip.pos,nObs,1),2))./(4*pi).*(...
-    cross(-r0,cross(r0,Mp,2),2) );
+fF     = construct.Z0*construct.c0*k^2.*exp(...
+    1i*k*sum(r0 .* repelem(dip.pos,nObs,1),2) ...
+    )./(4*pi).*(cross(-r0,cross(r0,Mp,2),2) );
 
 % Hell of a sum
 fF     = reshape(sum(reshape(fF', [], nDip), 2),3,[])';
