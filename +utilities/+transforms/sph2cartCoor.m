@@ -1,5 +1,4 @@
 function [x,y,z] = sph2cartCoor(r,theta,phi)
-
 % SPH2CARTCOOR Converts spherical coordinates to cartesian coordinates
     % Input:
     %  r     - radius (distance from origin)
