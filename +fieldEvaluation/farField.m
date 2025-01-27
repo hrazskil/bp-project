@@ -11,7 +11,7 @@ function [fF] = farField(rObserved,dip,f)
 nDip = size(dip.pos, 1);                                                    % Number of dipoles
 nObs = size(rObserved, 1);                                                  % Number of observed points
 
-% Constants
+% Constants 
 construct   = utilities.constants.giveConstants;                            % Retrieve physical constants
 omega       = 2 * pi * f;                                                   % Angular frequency
 k           = omega / construct.c0;                                         % Wave number (k = omega/c)

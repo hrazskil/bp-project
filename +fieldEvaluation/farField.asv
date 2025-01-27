@@ -1,0 +1,36 @@
+function [fF] = farField(rObserved, dip, f)
+% ELEFIELDFAR Computes the far-field radiation pattern from dipoles.
+% Inputs:
+%   rObserved - Nx3 matrix of observed positions (x, y, z)
+%   dip - structure containing dipole properties (positions, amplitudes, directions)
+%   f - frequency of the source
+% Output:
+%   fF - far-field radiation pattern (Mx3 matrix)
+
+% Initialization
+nDip = size(dip.pos, 1);           % Number of dipoles
+nObs = size(rObserved, 1);         % Number of observed points
+
+% Constants
+construct = utilities.constants.giveConstants;   % Retrieve physical constants
+omega = 2 * pi * f;                              % Angular frequency
+k = omega / construct.c0;                        % Wave number (k = omega/c)
+
+% Normalize observed positions
+rNorm = utilities.rowNorm(rObserved);            % Calculate the norm of rObserved once
+r0 = rObserved ./ rNorm;                         % Normalize observed positions
+
+% Precompute reusable terms
+dipPos = repmat(dip.pos, nObs, 1);               % Repeat dipole positions
+r0DotDipPos = utilities.rowDot(r0, dipPos);              % Dot product for r0 and dipole positions
+
+% Multipole moment
+Mp = dip.complAmpl .* dip.dir;                   % Combine amplitude and direction for each dipole
+crossProduct = cross(-r0, cross(r0, Mp, 2), 2);  % Cross product part
+
+% Far-field computation
+fF = (construct.Z0 * construct.c0 * k^2) .* exp(1i * k * r0DotDipPos) ./ (4 * pi) .* crossProduct;
+
+% Sum contributions from all dipoles
+fF = reshape(sum(reshape(fF.', [], nDip), 2), 3, []).';
+end

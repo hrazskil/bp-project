@@ -19,7 +19,7 @@ Mp      = repelem(dip.complAmpl,nObs,1) .* (repelem(dip.dir,nObs,1));
 IMR     = 1i*k*MR;
 
 eM     = construct.c0*k^2*exp(-IMR) ./ (4*pi*MR) .* (...
-    cross(MdirR,Mp,2).*(1 ./ (IMR) + 1) );
+    utilities.rowCross(MdirR,Mp).*(1 ./ (IMR) + 1) );
 
 % Hell of a sum
 eM     = reshape(sum(reshape(eM', [], nDip), 2),3,[])';

@@ -1,28 +1,33 @@
-function [eF] = eleFieldFar(rObserved,dip,f)
-%ELEFIELDFAR Summary of this function goes here
-%   Detailed explanation goes here
-%inicialization
-nDip    = size(dip.pos,1);
-nObs    = size(rObserved,1);
+function [eF] = eleFieldFar(rObserved, dip, f)
+% ELEFIELDFAR aproximates the electric field in the far field.
 
-%constants
-construct = utilities.constants.giveConstants;
-omega     = 2*pi*f;
-k         = omega/construct.c0;
+% Initialization
+nDip = size(dip.pos, 1);
+nObs = size(rObserved, 1);
 
+% Constants
+construct = utilities.constants.giveConstants; 
+omega = 2 * pi * f; 
+k = omega / construct.c0; 
 
-MRVec   = repmat(rObserved,nDip,1) - repelem(dip.pos,nObs,1);
-MR      = utilities.rowNorm(MRVec);
-MdirR   = MRVec./MR;
+% Preallocate and calculate differences (it helps)
+dipPosRep = repelem(dip.pos, nObs, 1); 
+obsPosRep = repmat(rObserved, nDip, 1);
+MRVec = obsPosRep - dipPosRep; 
+MR = utilities.rowNorm(MRVec);
 
-Mp  = repelem(dip.complAmpl,nObs,1) .* (repelem(dip.dir,nObs,1));
+% Normalize directional vectors
+MdirR = MRVec ./ MR;
 
+% Compute dipole moment
+Mp = repelem(dip.complAmpl, nObs, 1) .* repelem(dip.dir, nObs, 1);
 
-eF  = construct.Z0*construct.c0*k^2.*exp(-1i*k*MR)./(4*pi*MR).*(...
-    cross(-(MdirR),cross((MdirR),Mp,2),2));
+% Compute the electric field
+eF = construct.Z0 * construct.c0 * k^2 .* exp(-1i * k * MR) ./ (4 * pi * MR) ...
+    .* (utilities.rowCross(-MdirR, utilities.rowCross(MdirR, Mp)));
 
-% Hell of a sum
-eF  = reshape(sum(reshape(eF.', [], nDip), 2),3,[]).';
+% Sum contributions and reshape (more clear)
+eF = sum(reshape(eF, nObs, nDip, 3), 2);
+eF = reshape(eF, nObs, 3);
 
 end
-

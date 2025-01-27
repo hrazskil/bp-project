@@ -1,33 +1,35 @@
+
+
 % Cleaning
 clc; % Clear the command window
 clear; % Clear all variables from the workspace
 %%
 % Load the variables from the file into the workspace
-load('C:\Users\kilia\Plocha\gitHub\bp-project\test\halfwaveDipole.mat');
+load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\halfwaveDipole.mat');
 
 % Define the number of theta and phi points
-nTh = 600; 
-nPh = 1200;
+nTh = 60; 
+nPh = 120;
 
-% Create linearly spaced vectors for theta and phi
+% Create linearly spaced vectors
 theta = linspace(0, pi, nTh); 
 phi = linspace(0, 2*pi, nPh);
 
-% Create a meshgrid for theta and phi
+% Create a meshgrid
 [Theta, Phi] = meshgrid(theta, phi);
 
-% Reshape Theta and Phi into column vectors
+% Reshape into column vectors
 Theta = Theta(:); % Flatten into a single column vector
 Phi = Phi(:); % <=> Phi = reshape(Phi, [nTh*nPh, 1]);
 
-% Convert spherical coordinates to Cartesian coordinates
+% Convert spherical to Cartesian
 [x, y, z] = utilities.transforms.sph2cartCoor(ones(nTh*nPh, 1), Theta, Phi);
 rObserved = [x, y, z]; % Combine Cartesian coordinates into a matrix
 
-% Evaluate the far field based on the observed coordinates
+% Evaluate the far field
 [fF] = fieldEvaluation.farField(rObserved, dip, f0List);
 
-% Transform Cartesian field components to spherical coordinates
+% Transform Cartesian field components to spherical
 [Fr, Fth, Fph] = utilities.transforms.cart2sphVec(...
     x, y, z, fF(:, 1), fF(:, 2), fF(:, 3) ...
 );
