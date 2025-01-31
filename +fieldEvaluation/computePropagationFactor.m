@@ -9,7 +9,6 @@ function [propagationFactor] = computePropagationFactor(fF, rObserved, k)
 
 % Compute distances (r) 
 r = utilities.rowNorm(rObserved); %
-
 % Apply the propagation factor to far-field F
 propagationFactor = exp(-1i * k * r) ./ r; % Nx1 vector
 end

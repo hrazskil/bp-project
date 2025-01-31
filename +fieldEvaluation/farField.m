@@ -25,7 +25,7 @@ Mp = repelem(dip.complAmpl, nObs, 1) .* (repelem(dip.dir, nObs, 1));        % Co
 
 fF = construct.Z0*construct.c0*k^2.*exp(...
     1i*k*sum(r0 .* repelem(dip.pos,nObs,1),2) ...
-    )./(4*pi).*(cross(-r0,cross(r0,Mp,2),2) );
+    )./(4*pi).*(utilities.rowCross(-r0,utilities.rowCross(r0,Mp)) );
 
 % Hell of a sum
 fF = reshape(sum(reshape(fF.', [], nDip), 2),3,[]).';

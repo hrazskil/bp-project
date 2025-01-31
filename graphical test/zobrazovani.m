@@ -1,5 +1,3 @@
-
-
 % Cleaning
 clc; % Clear the command window
 clear; % Clear all variables from the workspace
@@ -22,6 +20,7 @@ phi = linspace(0, 2*pi, nPh);
 Theta = Theta(:); % Flatten into a single column vector
 Phi = Phi(:); % <=> Phi = reshape(Phi, [nTh*nPh, 1]);
 
+
 % Convert spherical to Cartesian
 [x, y, z] = utilities.transforms.sph2cartCoor(ones(nTh*nPh, 1), Theta, Phi);
 rObserved = [x, y, z]; % Combine Cartesian coordinates into a matrix
@@ -36,10 +35,10 @@ rObserved = [x, y, z]; % Combine Cartesian coordinates into a matrix
 
 
 % Reshape Theta, Phi, Fth, and Fph for contour plotting
-Theta = reshape(Theta, [nPh, nTh]);
-Phi = reshape(Phi, [nPh, nTh]);
-Fth = reshape(Fth, [nPh, nTh]);
-Fph = reshape(Fph, [nPh, nTh]);
+Theta = reshape(Theta, [nTh, nPh]);
+Phi = reshape(Phi, [nTh, nPh]);
+Fth = reshape(Fth, [nTh, nPh]);
+Fph = reshape(Fph, [nTh, nPh]);
 
 % Visualization of Fth and Fph using contour plots with color bars
 
