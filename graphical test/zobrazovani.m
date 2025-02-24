@@ -14,7 +14,7 @@ theta = linspace(0, pi, nTh);
 phi = linspace(0, 2*pi, nPh);
 
 % Create a meshgrid
-[Theta, Phi] = meshgrid(theta, phi);
+[Phi, Theta] = meshgrid(phi,theta);
 
 % Reshape into column vectors
 Theta = Theta(:); % Flatten into a single column vector
@@ -31,7 +31,7 @@ rObserved = [x, y, z]; % Combine Cartesian coordinates into a matrix
 % Transform Cartesian field components to spherical
 [Fr, Fth, Fph] = utilities.transforms.cart2sphVec(...
     x, y, z, fF(:, 1), fF(:, 2), fF(:, 3) ...
-);
+                                                 );
 
 
 % Reshape Theta, Phi, Fth, and Fph for contour plotting
@@ -47,25 +47,43 @@ figure
 contourf(Theta/pi, Phi/(pi), real(Fth));
 title('Re[Fth] ver2');
 colorbar; % Add color bar for reference
-grid on;
+
 
 % Plot for the imaginary part of Fth
 figure
-contourf(Phi/(pi), Theta/pi, imag(Fth));
+contourf(Theta/(pi), Phi/pi, imag(Fth));
 title('Im[Fth] ver2');
 colorbar; 
-grid on;
+
 
 % Plot for the real part of Fph
 figure
 contourf(Theta/pi, Phi/(pi), real(Fph));
 title('Re[Fph] ver2');
 colorbar; 
-grid on;
+
 
 % Plot for the imaginary part of Fph
 figure
 contourf(Theta/pi, Phi/(pi), imag(Fph));
 title('Im[Fph] ver2');
 colorbar;
-grid on;
+
+%%
+
+% Load the variables from the file into the workspace
+load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\halfwaveDipoleFarFields.mat')
+
+theta = linspace(0, pi, 60);
+phi = linspace(0, 2*pi, 120);
+[PH,TH] = meshgrid(phi,theta);
+figure
+contourf(TH/pi,PH/pi,real(farfield.FTheta))
+xlabel('\theta/ \pi')
+ylabel('\phi/ \pi')
+title('Re[Fth]')
+
+figure
+pcolor(abs(farfield.FTheta -Fth))
+abs(farfield.FTheta(30,60))
+abs(Fth(30,60))

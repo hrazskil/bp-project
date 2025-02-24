@@ -17,6 +17,8 @@ f=f0List;
 %                  2;
 %                  3];
 % f=1e6;
+%%
+
 
 %% quadrature
 
@@ -35,13 +37,12 @@ rObserved = points*rFar;
 %rObserved = [1, 2, 3]*rFar;
 tic
 [eF] = fieldEvaluation.eleFieldM2(rObserved,dip,f);
-toc
 
 
 [mF] = fieldEvaluation.magFieldM2(rObserved,dip,f);
+toc
 
-
-tmp = 0.5*real(sum((cross( eF, conj(mF),2).*points ),2));
+tmp = 0.5*real(sum((utilities.rowCross( eF, conj(mF)).*points ),2));
 
 tic
 [fF] = fieldEvaluation.farField(rObserved,dip,f);
@@ -52,13 +53,8 @@ toc
 %numerical
 integral    = sum( tmp .* weigths);
 integral    = integral*rFar^2
-
-result      = fieldEvaluation.powerRadiated(f,dip)
-resultMinIntegralEF       = result-integral
-
-
-
+integralTest = fieldEvaluation.powerQuadrature(Nleb, eF, mF)*rFar^2
 integral2   = sum(sum(fF.*conj(fF),2).* weigths)/(2*construct.Z0)
-resultMinIntegralFF = result-integral2
+
 %sum of all errors
 allErrorSumEFfF = sum(sum(eF2-eF))
