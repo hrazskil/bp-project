@@ -66,8 +66,6 @@ grid on;
 hold off;
 
 %% Visualization of Transformed Coordinates
-[r02, theta02, phi02] = ...
-    utilities.transforms.sph2sph0(sphRObs(:,2), sphRObs(:,3));
 
 figure;
 quiver3(zeros(sRObs, 1), zeros(sRObs, 1), zeros(sRObs, 1), ...

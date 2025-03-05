@@ -6,8 +6,8 @@ clear; % Clear all variables from the workspace
 load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\halfwaveDipole.mat');
 
 % Define the number of theta and phi points
-nTh = 60; 
-nPh = 120;
+nTh = 120; 
+nPh = 240;
 
 % Create linearly spaced vectors
 theta = linspace(0, pi, nTh); 
@@ -45,28 +45,28 @@ Fph = reshape(Fph, [nTh, nPh]);
 % Plot for the real part of Fth
 figure
 contourf(Theta/pi, Phi/(pi), real(Fth));
-title('Re[Fth] ver2');
+title('Re[Eth]');
 colorbar; % Add color bar for reference
 
 
 % Plot for the imaginary part of Fth
 figure
 contourf(Theta/(pi), Phi/pi, imag(Fth));
-title('Im[Fth] ver2');
+title('Im[Eth]');
 colorbar; 
 
 
 % Plot for the real part of Fph
 figure
 contourf(Theta/pi, Phi/(pi), real(Fph));
-title('Re[Fph] ver2');
+title('Re[Eph]');
 colorbar; 
 
 
 % Plot for the imaginary part of Fph
 figure
 contourf(Theta/pi, Phi/(pi), imag(Fph));
-title('Im[Fph] ver2');
+title('Im[Eph]');
 colorbar;
 
 %%

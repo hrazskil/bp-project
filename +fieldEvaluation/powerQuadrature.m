@@ -1,4 +1,4 @@
-function [integral] = powerQuadrature(Nleb, eF, mF)
+function [integral] = powerQuadrature(Nleb, dip, f)
     % powerQuadrature computes the integral using Lebedev quadrature.
     % Inputs:
     %   Nleb - Number of Lebedev points
@@ -6,14 +6,18 @@ function [integral] = powerQuadrature(Nleb, eF, mF)
     %   mf   - Input vector for the magnetic field at observation points
     % Output:
     %   integral - The integrated power radiated
-
+    %% quadrature
+    
     % Get Lebedev points and weights for the specified number of points
-    [points, weights, ~] = utilities.getLebedevSphere(Nleb);
+    [rObserved, weights, ~] = utilities.getLebedevSphere(Nleb);
+
+    [eF] = fieldEvaluation.eleFieldM2(rObserved,dip,f);
+    [mF] = fieldEvaluation.magFieldM2(rObserved,dip,f);
 
     % Calculate the temporary value
-    tmp = 0.5 * real(sum((utilities.rowCross(eF, conj(mF)) .* points), 2));
+    tmp = real(sum((utilities.rowCross(eF, conj(mF)) .* rObserved), 2));
 
     % Compute the final integral by summing the product of tmp and weights
-    integral = sum(tmp .* weights);
+    integral = 0.5 * sum(tmp .* weights);
 end
 

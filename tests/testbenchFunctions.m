@@ -22,9 +22,6 @@ k           = omega/construct.c0;
 
 %% tests of functions
 
-
-
-
 % tic
 % const   = utilities.constants.giveConstants;
 % pow     = (1/(2*const.Z0))*(eF.*conj(eF))
@@ -32,35 +29,19 @@ k           = omega/construct.c0;
 %% functioning functions
 % 
 rObserved   = [1,2,3];
-%%
-% tic
-% [eF] = fieldEvaluation.eleField(rObserved,dip,f,complAmpl);
-% toc
 
 tic
 [eF] = fieldEvaluation.eleFieldM2(rObservedFar,dip,f0List,complAmpl);
 toc
 
 tic
-[eF] = fieldEvaluation.eleFieldFar(rObservedFar,dip,f0List,complAmpl);
+[eF] = fieldEvaluation.farField(rObservedFar,dip,f0List,complAmpl);
 toc
 
-%  % better for ndip=nobs or ndip>nobs
 % tic
 % [mF] = fieldEvaluation.magFieldM2(rObserved,dip,f,complAmpl);
 % toc
 
-%
-% %better for nobs>>ndip
-% %needs to be optimized
-% tic
-% [mFM] = fieldEvaluation.magFieldM(rObserved,dip,f,complAmpl);
-% toc
-% %better for nobs>>ndip
-% %needs to be optimized
-% tic
-% [mFM2] = fieldEvaluation.magFieldM2(rObserved,dip,f,complAmpl);
-% toc
 
 %% quadrature
 

@@ -1,4 +1,4 @@
-function [powerPoyintFar] = powerPoyintingFar(eF)
+function [powerPoyntFar] = powerPoyntingFar(eF)
 % POWERPOYNTINGFAR 
 % Computes the far-field power density from the electromagnetic field.
 %   Inputs:
@@ -10,6 +10,5 @@ function [powerPoyintFar] = powerPoyintingFar(eF)
     const = utilities.constants.giveConstants; 
     
     % Calculate the power density
-    powerPoyintFar = (1 / (2 * const.Z0)) * sum(abs(eF).^2, 2);
-
+    powerPoyntFar = (1 / (2 * const.Z0)) .* sum(abs(eF).^2, 2);
 end

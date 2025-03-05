@@ -1,6 +1,5 @@
-function [out] = radiativity(rObserved,powerFar)
-%RADIATIVITY Summary of this function goes here
-%   Detailed explanation goes here
+function [radiativity] = radiativity(rObserved,powerFar)
+
 
 end
 
