@@ -20,6 +20,11 @@ k           = omega / construct.c0;                                         % Wa
 r0 = rObserved ./ repmat(utilities.rowNorm(rObserved), [1, 3]);             % Normalize each observed position
 r0 = repmat(r0, [nDip, 1]);                                                 % Repeat for each dipole
 
+%needs to be adressed correctly (how to make pso compute with vectors transposed.)
+if isrow(dip.complAmpl)
+    dip.complAmpl = dip.complAmpl.';
+end
+
 % Compute the multipole moment
 Mp = repelem(dip.complAmpl, nObs, 1) .* (repelem(dip.dir, nObs, 1));        % Combine amplitude and direction for each dipole
 
