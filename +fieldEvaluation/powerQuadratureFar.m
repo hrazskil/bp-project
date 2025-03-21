@@ -1,21 +1,22 @@
-function [integral] = powerQuadratureFar(Nleb,dip,f)
-    % powerQuadrature computes the integral using Lebedev quadrature.
+function [integral] = powerQuadratureFar(Nleb, dip, f)
+    % powerQuadratureFar computes the total radiated power using Lebedev quadrature
     % Inputs:
-    %   Nleb - Number of Lebedev points
-    %   eF   - Input vector for the electric field at observation points
-    %   mf   - Input vector for the magnetic field at observation points
+    %   Nleb - Number of Lebedev points used for quadrature
+    %   dip  - Structure containing dipole parameters
+    %   f    - Frequency of operation
     % Output:
-    %   integral - The integrated power radiated
+    %   integral - The total radiated power computed using quadrature
 
-    % Get Lebedev points and weights for the specified number of points
+    % Get Lebedev points and weights for numerical integration
     [points, weights, ~] = utilities.getLebedevSphere(Nleb);
 
-    % get constants
-    construct   = utilities.constants.giveConstants;
+    % Get physical constants
+    construct = utilities.constants.giveConstants;
     
-    fF = fieldEvaluation.farField(points,dip,f);
+    % Compute the far-field electric field at Lebedev points
+    fF = fieldEvaluation.farField(points, dip, f);
 
-    % Compute the integral
-    integral = sum(sum(fF.*conj(fF),2).* weights)/(2*construct.Z0);
+    % Compute the radiated power integral using Lebedev quadrature
+    integral = sum(sum(fF .* conj(fF), 2) .* weights) / (2 * construct.Z0);
 end
 
