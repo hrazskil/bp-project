@@ -203,3 +203,6 @@ pycma-development/tools/conda.recipe/conda_build_config.yaml
 pycma-development/tools/conda.recipe/meta.yaml
 pycma-development/tools/conda.recipe/run_test.sh
 +optimization/epic_Oxide_Optimizations_test_bench.m
++utilities/colCross.m
++utilities/colDot.m
++utilities/colNorm.m
