@@ -39,7 +39,6 @@ normalizedPerturbedAmpImag = perturbedAmpImag / max(abs(perturbedAmpImag));
 dipolePerturbedRef.complAmpl = normalizedPerturbedAmpReal + ...
                                1i * normalizedPerturbedAmpImag;
 
-
 %% --- 1_c Compute Far-Field Parameters ---
 % Define physical constants
 construct = utilities.constants.giveConstants();
@@ -94,15 +93,15 @@ options_pso = optimoptions('particleswarm', ...
     'InertiaRange', [0.3, 1.5], ...             % Range for inertia weight (balance exploration/exploitation)
     'SelfAdjustmentWeight', 1.1, ...            % Weight for a particle's own best experience
     'SocialAdjustmentWeight', 1.05, ...         % Weight for following the global best solution
-    'FunctionTolerance', 1e-12, ...             % Stop if function value improvement is below this threshold
+    'FunctionTolerance', 1e-10, ...             % Stop if function value improvement is below this threshold
     'MaxStallIterations', 40, ...               % Stop if no improvement in 40 consecutive iterations
     'InitialSwarmMatrix', initialSwarmMatrix,...% Set custom initial positions for the swarm
     'Display', 'iter' ...                       % Show progress at each iteration
     );  
 
 optimFun = @(amp) ...
-    optimization.normObjectiveFunction(amp(1:numDipoles) + ...
-    1i * amp((numDipoles+1):(numDipoles*2)), dip, frequency, points, ...
+    optimization.normObjectiveFunction(amp(1:numDipoles).' + ...
+    1i * amp((numDipoles+1):(numDipoles*2)).', dip, frequency, points, ...
     weights, fF_ref, totalPower_ref);
 
 % Run PSO for Amplitude Recovery
@@ -132,7 +131,7 @@ hold off;
 
 %% --- 3. Optimization Using fmincon ---
 
-% initialGuess = [optAmps_pso_vec(1:numDipoles);... serialization of optimizations
+% initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % serialization of optimizations
 %               optAmps_pso_vec(numDipoles+1:end)]';
 
 options_fmincon = optimoptions('fmincon', ...
