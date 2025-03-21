@@ -1,15 +1,18 @@
-% Cleaning
-clc; % Clear the command window
-clear; % Clear all variables from the workspace
+%% --- 1. Initialization ---
+clc; clear; close all;
+
+% Load dipole variables from file 
+load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\halfwaveDipole.mat');
+f = f0List; % Frequency of 1 GHz
+% dip.dir = dip.dir'
+% dip.pos = dip.pos'
+% dip.complAmpl = dip.complAmpl'
 %% inicialization for testing functions
-nDip=1;
-dip.pos     = [0.4,0.3,0.7];
-%%
-dip.dir     = [1,2,3];
-%% norming of dip.dir
-dip.dir = dip.dir./repmat(utilities.rowNorm(dip.dir),[1,3]);
-%%
-dip.complAmpl   = 0.4+1i*0.6;
+% nDip=1;
+% dip.pos     = [0.4,0.3,0.7];
+% dip.dir     = [1,2,3];
+% dip.dir = dip.dir./repmat(utilities.rowNorm(dip.dir),[1,3]);
+% dip.complAmpl   = 0.4+1i*0.6;
 
 %% control function
 
@@ -28,21 +31,33 @@ k           = omega/construct.c0;
 % toc    
 %% functioning functions
 % 
-rObserved   = [1,2,3];
+[rObserved] = utilities.getLebedevSphere(302);
+
+
 
 tic
-[eF] = fieldEvaluation.eleFieldM2(rObservedFar,dip,f0List,complAmpl);
+[eF] = fieldEvaluation.eleFieldM2(rObserved,dip,f0List);
 toc
 
 tic
-[eF] = fieldEvaluation.farField(rObservedFar,dip,f0List,complAmpl);
+[eF2] = fieldEvaluation.eleFieldM2(rObserved,dip,f0List);
 toc
+
+sum(abs(eF2)-abs(eF),"all")
 
 % tic
-% [mF] = fieldEvaluation.magFieldM2(rObserved,dip,f,complAmpl);
+% [eF] = fieldEvaluation.farField(rObserved,dip,f0List,complAmpl);
 % toc
 
+tic
+[mF] = fieldEvaluation.magFieldM3(rObserved,dip,f);
+toc
 
+tic
+[mF2] = fieldEvaluation.magFieldM3(rObserved,dip,f);
+toc
+
+sum(abs(mF2)-abs(mF),"all")
 %% quadrature
 
 
