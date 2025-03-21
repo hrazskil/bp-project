@@ -35,29 +35,35 @@ k           = omega/construct.c0;
 
 
 
-tic
-[eF] = fieldEvaluation.eleFieldM2(rObserved,dip,f0List);
-toc
-
-tic
-[eF2] = fieldEvaluation.eleFieldM2(rObserved,dip,f0List);
-toc
-
-sum(abs(eF2)-abs(eF),"all")
+% tic
+% [eF] = fieldEvaluation.eleFieldM2(rObserved,dip,f0List);
+% toc
+% 
+% tic
+% [eF2] = fieldEvaluation.eleFieldM3(rObserved,dip,f0List);
+% toc
+% 
+% sum(abs(eF2)-abs(eF),"all")
 
 % tic
-% [eF] = fieldEvaluation.farField(rObserved,dip,f0List,complAmpl);
+% [mF] = fieldEvaluation.farField(rObserved,dip,f);
 % toc
+% 
+% tic
+% [mF2] = fieldEvaluation.farField2(rObserved,dip,f);
+% toc
+% 
+% sum(abs(mF2)-abs(mF),"all")
 
-tic
-[mF] = fieldEvaluation.magFieldM3(rObserved,dip,f);
-toc
-
-tic
-[mF2] = fieldEvaluation.magFieldM3(rObserved,dip,f);
-toc
-
-sum(abs(mF2)-abs(mF),"all")
+% tic
+% [mF] = fieldEvaluation.magFieldM2(rObserved,dip,f);
+% toc
+% 
+% tic
+% [mF2] = fieldEvaluation.magFieldM3(rObserved,dip,f);
+% toc
+% 
+% sum(abs(mF2)-abs(mF),"all")
 %% quadrature
 
 
