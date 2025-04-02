@@ -1,7 +1,6 @@
-function [propagationFactor] = computePropagationFactor(fF, rObserved, k)
+function [propagationFactor] = computePropagationFactor(rObserved, k)
 % COMPUTEELECTRICFIELD Converts far-field radiation pattern F to electric field E.
 % Inputs:
-%   fF - Far-field radiation pattern (Nx3 matrix).
 %   rObserved - Nx3 matrix of observed positions (x, y, z).
 %   k - Wave number (2*pi*f / c).
 % Output:

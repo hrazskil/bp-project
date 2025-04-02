@@ -1,13 +1,4 @@
-% Cleaning
-clc; % Clear the command window
-clear; % Clear all variables from the workspace
-%%
-% Load the variables from the file into the workspace
-load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\halfwaveDipole.mat');
-
-% Define the number of theta and phi points
-nTh = 120; 
-nPh = 240;
+function giveContourF(dip,f0List,nTh,nPh)
 
 % Create linearly spaced vectors
 theta = linspace(0, pi, nTh); 
@@ -29,11 +20,9 @@ rObserved = [x, y, z]; % Combine Cartesian coordinates into a matrix
 [fF] = fieldEvaluation.farField(rObserved, dip, f0List);
 
 % Transform Cartesian field components to spherical
-[Fr, Fth, Fph] = utilities.transforms.cart2sphVec(...
-    x, y, z, fF(:, 1), fF(:, 2), fF(:, 3) ...
+[~, Fth, Fph] = utilities.transforms.cart2sphVec(...
+                x, y, z, fF(:, 1), fF(:, 2), fF(:, 3) ...
                                                  );
-
-
 % Reshape Theta, Phi, Fth, and Fph for contour plotting
 Theta = reshape(Theta, [nTh, nPh]);
 Phi = reshape(Phi, [nTh, nPh]);
@@ -45,45 +34,35 @@ Fph = reshape(Fph, [nTh, nPh]);
 % Plot for the real part of Fth
 figure
 contourf(Theta/pi, Phi/(pi), real(Fth));
-title('Re[Eth]');
+xlabel('\theta/ \pi')
+ylabel('\phi/ \pi')
+title('Re[Fth]');
 colorbar; % Add color bar for reference
 
 
 % Plot for the imaginary part of Fth
 figure
 contourf(Theta/(pi), Phi/pi, imag(Fth));
-title('Im[Eth]');
+xlabel('\theta/ \pi')
+ylabel('\phi/ \pi')
+title('Im[Fth]');
 colorbar; 
 
 
 % Plot for the real part of Fph
 figure
 contourf(Theta/pi, Phi/(pi), real(Fph));
-title('Re[Eph]');
+xlabel('\theta/ \pi')
+ylabel('\phi/ \pi')
+title('Re[Fph]');
 colorbar; 
 
 
 % Plot for the imaginary part of Fph
 figure
 contourf(Theta/pi, Phi/(pi), imag(Fph));
-title('Im[Eph]');
-colorbar;
-
-%%
-
-% Load the variables from the file into the workspace
-load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\halfwaveDipoleFarFields.mat')
-
-theta = linspace(0, pi, 60);
-phi = linspace(0, 2*pi, 120);
-[PH,TH] = meshgrid(phi,theta);
-figure
-contourf(TH/pi,PH/pi,real(farfield.FTheta))
 xlabel('\theta/ \pi')
 ylabel('\phi/ \pi')
-title('Re[Fth]')
-
-figure
-pcolor(abs(farfield.FTheta -Fth))
-abs(farfield.FTheta(30,60))
-abs(Fth(30,60))
+title('Im[Fph]');
+colorbar;
+end

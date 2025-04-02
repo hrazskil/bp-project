@@ -1,4 +1,4 @@
-function [eF] = eleFieldM3(rObserved, dip, f)
+function [eF] = eleFieldM2(rObserved, dip, f)
 % eleFieldM3 computes the electric field at given observation points due to a set of dipoles.
 %
 % INPUTS:

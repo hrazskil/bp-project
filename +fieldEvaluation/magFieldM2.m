@@ -1,5 +1,5 @@
-function [eM] = magFieldM3(rObserved, dip, f)
-% magFieldM3 Computes the magnetic field at given observation points due to a set of dipoles.
+function [eM] = magFieldM2(rObserved, dip, f)
+% magFieldM2 Computes the magnetic field at given observation points due to a set of dipoles.
 %
 % INPUTS:
 %   rObserved (nObs × 3)  - Cartesian coordinates of the observation points.
