@@ -28,4 +28,4 @@ z = points(:,3);
 sum((y.^2) .* weigths)
 
 % analytical
-4*pi/3
+4*pi/3;

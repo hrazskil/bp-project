@@ -2,7 +2,7 @@
 clc; clear; close all;
 
 % Load dipole variables from file 
-load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\DipoleArray.mat');
+load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_2\DipoleArray.mat')
 
 % Extract dipole information
 numDipoles = numel(dip.complAmpl);
@@ -22,7 +22,7 @@ rFar = 1e6 / k;              % Large observation distance
 rObservedCell = cellfun(@(points) points * rFar, pointsCell, 'UniformOutput', false);
 
 % Compute reference far-field patterns and total power
-fF_refCell = cellfun(@(rObs) fieldEvaluation.farField(rObs, dip, f0List), rObservedCell, 'UniformOutput', false);
+fF_refCell = cellfun(@(rObs) fieldEvaluation.farFieldM2(rObs, dip, f0List), rObservedCell, 'UniformOutput', false);
 totalPower_refCell = cellfun(@(fF_ref, weights) sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0), fF_refCell, weightsCell);
 
 % Time measurement for all cases
@@ -47,7 +47,7 @@ degree = 302; % Fixed Lebedev quadrature degree
 rObserved = points * rFar;   % Scale points to observation distance
 
 % Compute reference far-field pattern for fixed Lebedev 302
-fF_ref = fieldEvaluation.farField(rObserved, dip, f0List);
+fF_ref = fieldEvaluation.farFieldM2(rObserved, dip, f0List);
 totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
 
 % Generate dipole subsets using arrayfun for vectorization

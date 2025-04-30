@@ -42,7 +42,7 @@ farfield = sphericalVectorWaves.sphericalFarField(f0List, fSW, indexVec, theta, 
 % test evaluation of readiated power
 Prad1 = fieldEvaluation.powerQuadratureFar(degree, dip, f0List); % direct evaluation
 Prad2 = farfield.Prad; % evaluation from spherical waves
-[Prad1; Prad2]
+[Prad1; Prad2];
 
 %%%%%%%%%% This does not work without external packages %%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

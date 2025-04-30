@@ -1,31 +1,39 @@
-function error = normObjectiveFunction_rad(dip, inputData)
-    % Compute the far-field pattern
-    fF_vertical = fieldEvaluation.farField(inputData.vertical.points, dip, inputData.freq);
-    fF_horizontal = fieldEvaluation.farField(inputData.horizontal.points, dip, inputData.freq);
-    
-    rad_Vertical = sum(abs(fF_vertical).^2, 2);
-    rad_Horizontal = sum(abs(fF_horizontal).^2, 2);
-    
-    totalPower_ver = trapz(rad_Vertical.*inputData.vertical.weights);
-    % sizeStep = inputData.vertical.points(2)-inputData.vertical.points(1); % needs redefining for generalization functions with this examole because 
-    % totalPower_ver = sum((rad_Vertical.*inputData.vertical.weights).*sizeStep);
-    
-    totalPower_hor = trapz(rad_Horizontal.*inputData.vertical.weights);
-    % sizeStep = inputData.horizontal.points(2)-inputData.horizontal.points(1); % same as above comment
-    % totalPower_hor = sum((rad_Horizontal.*inputData.horizontal.weights).*sizeStep);
-    
-    % Normalize
-    
-    rad_Vertical_norm = rad_Vertical / totalPower_ver;
-    rad_Horizontal_norm = rad_Horizontal / totalPower_hor;
-    
-    rad_ref_Vertical_norm = inputData.vertical.rad / inputData.vertical.totalPower;
-    rad_ref_Horizontal_norm = inputData.horizontal.rad / inputData.horizontal.totalPower;
-    
-    % Compute the errors
-    error_ver = sum(abs(rad_Vertical_norm - rad_ref_Vertical_norm));       % isn't a virtual zero and is bigger than  error_hor by 1e8
-    error_hor = sum(abs(rad_Horizontal_norm - rad_ref_Horizontal_norm));
-    
-    % Total error as the sum of errors from both planes
-    error = error_ver + error_hor;
+function totalError = normObjectiveFunction_rad(dip, inputData)
+%COMPUTERADIATIONERROR Computes the normalized error between
+%                      reference and simulated far-field power densities
+%                      in vertical and horizontal planes.
+%
+%   Inputs:
+%       dip        - Struct with dipole data, including `complAmpl`
+%       inputData  - Struct containing reference power densities, weights,
+%                    observation points, and frequency.
+%
+%   Output:
+%       totalError - Combined vertical and horizontal normalized error (scalar)
+
+    % --- Simulate far-field responses on both vertical and horizontal observation planes ---
+    farFieldVertical = fieldEvaluation.farFieldM2(inputData.vertical.points, dip, inputData.freq);
+    farFieldHorizontal = fieldEvaluation.farFieldM2(inputData.horizontal.points, dip, inputData.freq);
+
+    % --- Compute radiated power densities (|E|^2) ---
+    powerDensityVertical = sum(abs(farFieldVertical).^2, 2);
+    powerDensityHorizontal = sum(abs(farFieldHorizontal).^2, 2);
+
+    % --- Total radiated power (integrated using weights) ---
+    totalPowerVertical = sum(powerDensityVertical .* inputData.vertical.weights);
+    totalPowerHorizontal = sum(powerDensityHorizontal .* inputData.horizontal.weights);
+
+    % --- Normalize both simulated and reference radiation data ---
+    powerDensityVerticalNorm = powerDensityVertical / totalPowerVertical;
+    powerDensityHorizontalNorm = powerDensityHorizontal / totalPowerHorizontal;
+
+    refPowerDensityVerticalNorm = inputData.vertical.rad / inputData.vertical.totalPower;
+    refPowerDensityHorizontalNorm = inputData.horizontal.rad / inputData.horizontal.totalPower;
+
+    % --- Compute errors ---
+    errorVertical = sum(abs(powerDensityVerticalNorm - refPowerDensityVerticalNorm) .* inputData.vertical.weights);
+    errorHorizontal = sum(abs(powerDensityHorizontalNorm - refPowerDensityHorizontalNorm) .* inputData.horizontal.weights);
+
+    % --- Final objective error: total of both planes ---
+    totalError = errorVertical + errorHorizontal;
 end

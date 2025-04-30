@@ -2,7 +2,7 @@
 clc; clear; close all;
 
 % Load dipole variables from file
-load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\DipoleArray.mat');
+load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_2\DipoleArray.mat')
 
 % Define available number of dipoles for testing
 dipoleCounts = round(linspace(1, numel(dip.complAmpl)/4, 4));  % Varying dipole counts (from 10 to the total number of dipoles)
@@ -21,7 +21,7 @@ rFar = 1e6 / k;              % Large observation distance
 rObserved = points * rFar;  % Scale points to observation distance
 
 % Compute reference far-field pattern for fixed Lebedev 302
-fF_ref = fieldEvaluation.farField(rObserved, dip, f0List);
+fF_ref = fieldEvaluation.farFieldM2(rObserved, dip, f0List);
 totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
 
 % Time measurement for all dipole subsets

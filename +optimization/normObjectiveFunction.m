@@ -19,7 +19,7 @@ function error = normObjectiveFunction(ampGuess, dip, f, points, weights, fF_ref
     dipOpt.complAmpl = ampGuess;  % Already in complex format
 
     % Compute far-field pattern for estimated dipoles
-    fF = fieldEvaluation.farField(points, dipOpt, f);
+    fF = fieldEvaluation.farFieldM2(points, dipOpt, f);
 
     totalPower = sum(weights .* sum(abs(fF).^2, 2)) / (2 * construct.Z0);
 

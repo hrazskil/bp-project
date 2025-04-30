@@ -1,23 +1,30 @@
 function [integral] = powerQuadrature(Nleb, dip, f)
-    % powerQuadrature computes the integral using Lebedev quadrature.
-    % Inputs:
-    %   Nleb - Number of Lebedev points
-    %   eF   - Input vector for the electric field at observation points
-    %   mf   - Input vector for the magnetic field at observation points
-    % Output:
-    %   integral - The integrated power radiated
-    %% quadrature
-    
-    % Get Lebedev points and weights for the specified number of points
-    [rObserved, weights, ~] = utilities.getLebedevSphere(Nleb);
+% powerQuadrature Computes total radiated power using Poynting vector integration.
+%
+% INPUTS:
+%   Nleb (scalar) - Number of Lebedev quadrature points.
+%   dip  (struct) - Dipole configuration (positions, amplitudes, directions).
+%   f    (scalar) - Frequency in Hz.
+%
+% OUTPUT:
+%   integral (scalar) - Estimated total radiated power.
+%
+% FORMULATION:
+%   Integral over a unit sphere of Re(E × H*) • r_hat, weighted by quadrature.
+%
+% ------------------------------------------------------------------------
 
-    [eF] = fieldEvaluation.eleFieldM2(rObserved,dip,f);
-    [mF] = fieldEvaluation.magFieldM2(rObserved,dip,f);
+% Step 1: Get Lebedev points and weights
+[rObserved, weights, ~] = utilities.getLebedevSphere(Nleb);
 
-    % Calculate the temporary value
-    tmp = real(sum((utilities.rowCross(eF, conj(mF)) .* rObserved), 2));
+% Step 2: Evaluate electric and magnetic fields at these points
+eF = fieldEvaluation.eleFieldM2(rObserved, dip, f);
+mF = fieldEvaluation.magFieldM2(rObserved, dip, f);
 
-    % Compute the final integral by summing the product of tmp and weights
-    integral = 0.5 * sum(tmp .* weights);
+% Step 3: Compute Poynting vector component in radial direction
+S_radial = real(sum(utilities.rowCross(eF, conj(mF)) .* rObserved, 2));
+
+% Step 4: Integrate using weighted sum
+integral = 0.5 * sum(S_radial .* weights);
+
 end
-

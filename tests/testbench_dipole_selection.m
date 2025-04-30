@@ -2,7 +2,7 @@
 clc; clear; close all;
 
 % Load dipole data from file (ensure path is correct)
-load('C:\Users\kilia\Plocha\gitHub\bp-project\graphical test\DipoleArray.mat');
+load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_2\DipoleArray.mat')
 
 % Extract real and imaginary parts of dipole amplitudes
 numDipoles = numel(dip.complAmpl);
@@ -50,7 +50,7 @@ Nleb = 302;                 % Number of Lebedev quadrature points (can adjust fo
 rObserved = points * rFar;   % Scale points to observation distance
 
 % Compute the far-field pattern for the reference dipoles
-fF_ref = fieldEvaluation.farField(rObserved, dipoleRef, f0List);
+fF_ref = fieldEvaluation.farFieldM2(rObserved, dipoleRef, f0List);
 
 % Compute total radiated power for normalization
 totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
