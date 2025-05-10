@@ -3,7 +3,6 @@ clc; clear; close all;
 
 %% Load test dipole configuration and reference far-field data
 load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_2\DipoleArray.mat');
-f0List = f0List;  % frequency for use below
 
 %% Save generated far-field test data for test_structure_2
 N = 360; % number of Points
@@ -59,7 +58,7 @@ toc
 disp(['Initial Error (Normalized): ', num2str(error)]);
 
 %% Benchmark runtime vs number of dipoles
-dipoleCounts = round(linspace(10, size(dip.complAmpl,1), 100));
+dipoleCounts = round(linspace(10, size(dip.complAmpl,1), 40));
 timeResults = zeros(size(dipoleCounts));
 
 for i = 1:length(dipoleCounts)
@@ -69,12 +68,13 @@ for i = 1:length(dipoleCounts)
     subDip.pos = dip.pos(1:n,:);
     subDip.dir = dip.dir(1:n,:);
 
-    trials = 20;
+    trials = 5;
     times = zeros(trials,1);
     for t = 1:trials
         times(t) = timeit(@() optimization.normObjectiveFunction_rad(subDip, inputData));
     end
     timeResults(i) = mean(times);
+    dipoleCounts(i)
 end
 
 %% Plot benchmark results
@@ -85,8 +85,45 @@ ylabel('Computation Time (s)');
 title('Runtime of normObjectiveFunction\_rad vs Dipole Count');
 grid on;
 
+%% --- Recompute timings for specific dipole counts (normObjectiveFunction_rad) ---
+dipoleCountsToRecompute = [69,405,760];  % <- Specify desired dipole counts to recompute
+numRepeats = 100;                       % Number of repetitions for averaging
+
+for dipVal = dipoleCountsToRecompute
+    idx = find(dipoleCounts == dipVal);
+    if isempty(idx)
+        warning('Dipole count %d not found in dipoleCounts array.', dipVal);
+        continue;
+    end
+
+    % Extract subset dipole configuration
+    n = dipoleCounts(idx);
+    subDip.complAmpl = dip.complAmpl(1:n);
+    subDip.pos = dip.pos(1:n, :);
+    subDip.dir = dip.dir(1:n, :);
+
+    % Recalculate execution time
+    tvals = zeros(numRepeats, 1);
+    for r = 1:numRepeats
+        tvals(r) = timeit(@() optimization.normObjectiveFunction_rad(subDip, inputData));
+    end
+
+    timeResults(idx) = mean(tvals);
+    fprintf('Recomputed time for %d dipoles (index %d): %.4f s\n', ...
+        n, idx, timeResults(idx));
+end
+
+% Optional: Refresh plot
+figure;
+plot(dipoleCounts, timeResults, '-o', 'LineWidth', 2);
+xlabel('Number of Dipoles');
+ylabel('Computation Time (s)');
+title('Updated Runtime of normObjectiveFunction\_rad vs Dipole Count');
+grid on;
+
+
 %% Benchmark runtime vs number of observation points
-pointCounts = round(linspace(10, 720, 50));
+pointCounts = [6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302, 350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074, 3470, 3890, 4334, 4802, 5294, 5810]./2;
 timePerPoints = zeros(size(pointCounts));
 
 for i = 1:length(pointCounts)
@@ -95,7 +132,7 @@ for i = 1:length(pointCounts)
 
     vertical_points = [cos(angles), zeros(N,1), sin(angles)];
     horizontal_points = [cos(angles), sin(angles), zeros(N,1)];
-
+    size(vertical_points,1)
     E_vert = fieldEvaluation.farFieldM2(vertical_points, dip, f0List);
     I_vert = fieldEvaluation.powerDensityFar(E_vert);
     E_horiz = fieldEvaluation.farFieldM2(horizontal_points, dip, f0List);
@@ -123,8 +160,61 @@ end
 
 %% Plot runtime vs number of observation points
 figure;
-plot(pointCounts, timePerPoints, '-s', 'LineWidth', 2);
-xlabel('Number of Observation Points per Plane');
+plot(pointCounts*2, timePerPoints, '-s', 'LineWidth', 2);
+xlabel('Number of Observation Points (both planes sumed)');
 ylabel('Computation Time (s)');
 title('Runtime of normObjectiveFunction\_rad vs Number of Points');
+grid on;
+
+%% --- Recompute timings for specific numbers of observation points ---
+pointCountsToRecompute = [5810]/2;  % <- Half the total point count (per plane) (insert total number)
+numRepeats = 3;
+
+for ptVal = pointCountsToRecompute
+    idx = find(pointCounts == ptVal);
+    if isempty(idx)
+        warning('Point count %d not found in pointCounts array.', ptVal);
+        continue;
+    end
+
+    N = pointCounts(idx);
+    angles = linspace(0, 2*pi*(N-1)/N, N)';
+
+    vertical_points = [cos(angles), zeros(N,1), sin(angles)];
+    horizontal_points = [cos(angles), sin(angles), zeros(N,1)];
+
+    E_vert = fieldEvaluation.farFieldM2(vertical_points, dip, f0List);
+    I_vert = fieldEvaluation.powerDensityFar(E_vert);
+
+    E_horiz = fieldEvaluation.farFieldM2(horizontal_points, dip, f0List);
+    I_horiz = fieldEvaluation.powerDensityFar(E_horiz);
+
+    input.vertical.points       = vertical_points;
+    input.vertical.rad          = I_vert;
+    input.vertical.weights      = ones(N,1);
+    input.vertical.totalPower   = sum(I_vert);
+
+    input.horizontal.points     = horizontal_points;
+    input.horizontal.rad        = I_horiz;
+    input.horizontal.weights    = ones(N,1);
+    input.horizontal.totalPower = sum(I_horiz);
+
+    input.freq = f0List;
+
+    % Re-timing
+    tvals = zeros(numRepeats, 1);
+    for r = 1:numRepeats
+        tvals(r) = timeit(@() optimization.normObjectiveFunction_rad(dip, input));
+    end
+    timePerPoints(idx) = mean(tvals);
+    fprintf('Recomputed time for %d total points (index %d): %.4f s\n', ...
+        2*N, idx, timePerPoints(idx));
+end
+
+% Optional: Update plot
+figure;
+plot(pointCounts*2, timePerPoints, '-s', 'LineWidth', 2);
+xlabel('Number of Observation Points (both planes summed)');
+ylabel('Computation Time (s)');
+title('Updated Runtime of normObjectiveFunction\_rad vs Number of Points');
 grid on;

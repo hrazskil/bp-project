@@ -5,10 +5,10 @@ clc; clear; close all;
 load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_2\DipoleArray.mat')
 
 % Define available number of dipoles for testing
-dipoleCounts = round(linspace(1, numel(dip.complAmpl)/4, 4));  % Varying dipole counts (from 10 to the total number of dipoles)
+dipoleCounts = round(linspace(1, numel(dip.complAmpl), 10));  % Varying dipole counts (from 10 to the total number of dipoles)
 
 % Define fixed Lebedev quadrature degree (e.g., degree 302 for now)
-degree = 302;
+degree = 770;
 
 % Define physical constants
 construct = utilities.constants.giveConstants();

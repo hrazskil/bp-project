@@ -178,4 +178,4 @@ utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFminco
 
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.00005);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.00005);
