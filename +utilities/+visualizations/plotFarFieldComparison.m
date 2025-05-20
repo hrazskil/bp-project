@@ -26,7 +26,7 @@ fF_sim = fieldEvaluation.farFieldM2([x, y, z], dipoleSim, freq);
 %% Step 5: Error computation
 % Error = abs(fF_sim - fF_ref)/(max(abs(fF_sim)));
 
-Error = utilities.rowNorm(fF_sim - fF_ref) / max(utilities.rowNorm(fF_ref));
+Error = utilities.rowNorm(abs(fF_sim - fF_ref)) / max(utilities.rowNorm(fF_ref));
 
 %% Step 6: Plot Comparison of Each Component
 ErrorMap = reshape(Error, Ntheta, Nphi);

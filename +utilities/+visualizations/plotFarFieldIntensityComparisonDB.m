@@ -1,4 +1,4 @@
-function plotFarFieldIntensityComparison(dipoleRef, dipolePso, freq, Ntheta, Nphi)
+function plotFarFieldIntensityComparisonDB(dipoleRef, dipolePso, freq, Ntheta, Nphi)
 % plotFarFieldIntensityComparison
 % Computes and visualizes normalized far-field intensity patterns for a reference and optimized dipole configuration.
 %
@@ -7,6 +7,10 @@ function plotFarFieldIntensityComparison(dipoleRef, dipolePso, freq, Ntheta, Nph
 %   dipolePso       - Structure containing optimized dipole parameters
 %   freq            - Frequency (scalar) in Hz
 %   Ntheta, Nphi    - Number of samples for theta and phi angular grid
+%   refPercentiles  - 2-element vector specifying color limit percentiles for reference
+%   psoPercentiles  - 2-element vector specifying color limit percentiles for optimized result
+%   diffPercentiles - 2-element vector for percentiles used in difference scaling
+%   minRange        - Minimum range (in dB) enforced on the difference plot color scale
 %
 % OUTPUT:
 %   Visual comparison of normalized far-field intensity in three subplots:
@@ -41,10 +45,13 @@ Fph_pso = reshape(Fph_pso, Ntheta, Nphi);
 intensity_ref = abs(Fth_ref).^2 + abs(Fph_ref).^2;
 intensity_pso = abs(Fth_pso).^2 + abs(Fph_pso).^2;
 
-%% Step 7: Normalize (Linear Scale)
-intensity_ref_norm = intensity_ref / max(intensity_ref(:));
-intensity_pso_norm = intensity_pso / max(intensity_pso(:));
-intensity_diff = (intensity_pso - intensity_ref) / max(intensity_pso(:)) ;
+%% Step 7: Convert to dB Scale and Normalize
+intensity_ref_dB = 10 * log10(intensity_ref + eps);
+intensity_pso_dB = 10 * log10(intensity_pso + eps);
+
+intensity_ref_dB_norm = intensity_ref_dB - max(intensity_ref_dB(:));
+intensity_pso_dB_norm = intensity_pso_dB - max(intensity_pso_dB(:));
+intensity_diff_dB = intensity_pso_dB_norm - intensity_ref_dB_norm;
 
 %% Step 9: Visualization
 figure('Name','Far-Field Intensity Comparison (Normalized)', 'Position', [100, 100, 1400, 500]);
@@ -52,7 +59,7 @@ colormap("bone");  % Zvol intenzitní mapu pro celý obrázek
 
 % --- Plot 1: Reference ---
 subplot(1,3,1);
-imagesc(phi/pi, theta/pi, intensity_ref_norm);
+imagesc(phi/pi, theta/pi, intensity_ref_dB_norm);
 xlabel('\phi/\pi'); ylabel('\theta/\pi');
 title('Reference Intensity');
 colorbar; axis xy;
@@ -62,14 +69,14 @@ refCaxis = clim;
 
 % --- Plot 2: Optimized ---
 subplot(1,3,2);
-imagesc(phi/pi, theta/pi, intensity_pso_norm);
+imagesc(phi/pi, theta/pi, intensity_pso_dB_norm);
 xlabel('\phi/\pi'); ylabel('\theta/\pi');
 title('Optimized Intensity');
 colorbar; axis xy;
 clim(refCaxis);  % Apply reference color scale
 
 subplot(1,3,3);
-imagesc(phi/pi, theta/pi, intensity_diff);
+imagesc(phi/pi, theta/pi, intensity_diff_dB);
     xlabel('\phi/\pi'); ylabel('\theta/\pi');
 title('Difference (Optimized - Reference)');
 colorbar; axis xy;
