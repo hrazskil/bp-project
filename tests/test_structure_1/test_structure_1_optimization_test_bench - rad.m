@@ -66,8 +66,8 @@ error = optimization.normObjectiveFunction_rad(dipoleRef, inputData);
 disp(['Initial Test After Normalization: ', num2str(error)]);
 
 %% Create perturbed (test) amplitudes with small noise
-realPerturbationFactor = 1 + 0.01 * randn(numDipoles, 1);
-imagPerturbationFactor = 1 + 0.01 * randn(numDipoles, 1);
+realPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
+imagPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
 
 perturbedAmp = real(dip.complAmpl) .* realPerturbationFactor + ...
                1i * imag(dip.complAmpl) .* imagPerturbationFactor;
@@ -89,6 +89,14 @@ dip.complAmpl = dipolePerturbedRef.complAmpl;
 error = optimization.normObjectiveFunction_rad(dip, inputData);
 disp(['Initial Test Error perturbed dip: ', num2str(error)]);
 
+%% === Far-Field Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360);
+
+%% === Far-Field Intensity Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
+
+exportgraphics(gcf, 'farFieldComparison.png', ...
+    'Resolution', 300, 'BackgroundColor', 'white');
 %% --- 2. Optimization Using PSO FF---
 
 % --- Define Bounds ---
@@ -146,7 +154,7 @@ dipolePso.complAmpl=optAmps_pso;
 utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePso, inputData.freq, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePso, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePso, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 
 %% --- 3. Optimization Using fmincon ---
 initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % serialization of optimizations
@@ -179,3 +187,52 @@ utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFminco
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
 utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.00005);
+
+
+% old nearfield
+% %% Parameters for grid
+% nTh = 181; nPh = 361;
+% theta = linspace(0, pi, nTh); 
+% phi = linspace(0, 2*pi, nPh);
+% [Phi, Theta] = meshgrid(phi, theta);
+% x = sin(Theta) .* cos(Phi);
+% y = sin(Theta) .* sin(Phi);
+% z = cos(Theta);
+% rObs = [x(:), y(:), z(:)];
+% 
+% % Compute fields
+% E_ref = fieldEvaluation.farFieldM2(rObs, dipoleRef, f0List);
+% E_pso = fieldEvaluation.farFieldM2(rObs, dipolePso, f0List);
+% E_fmc = fieldEvaluation.farFieldM2(rObs, dipoleFmincon, f0List);
+% 
+% % Convert to power density
+% I_ref = sum(abs(E_ref).^2, 2);
+% I_pso = sum(abs(E_pso).^2, 2);
+% I_fmc = sum(abs(E_fmc).^2, 2);
+% 
+% % Normalize
+% I_ref = I_ref / max(I_ref);
+% I_pso = I_pso / max(I_pso);
+% I_fmc = I_fmc / max(I_fmc);
+% 
+% % Absolute difference
+% diff_pso = abs(I_pso - I_ref);
+% diff_fmc = abs(I_fmc - I_ref);
+% 
+% % Reshape to 2D for plotting
+% diff_pso_grid = reshape(diff_pso, [nTh, nPh]);
+% diff_fmc_grid = reshape(diff_fmc, [nTh, nPh]);
+% 
+% % Plot PSO error
+% figure;
+% contourf(theta/pi, phi/pi, diff_pso_grid, 50, 'LineColor','none');
+% colorbar;
+% xlabel('\theta / \pi'); ylabel('\phi / \pi');
+% title('PSO Optimization – Intensity Difference (|I_{opt} - I_{ref}|)');
+% 
+% % Plot fmincon error
+% figure;
+% contourf(theta/pi, phi/pi, diff_fmc_grid, 50, 'LineColor','none');
+% colorbar;
+% xlabel('\theta / \pi'); ylabel('\phi / \pi');
+% title('fmincon Optimization – Intensity Difference (|I_{opt} - I_{ref}|)');
