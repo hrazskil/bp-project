@@ -7,37 +7,37 @@ frequency = f0List; % Frequency of 1 GHz
 
 % Extract real and imaginary parts of dipole amplitudes
 numDipoles = numel(dip.complAmpl);
-dipoleAmpReal = real(dip.complAmpl);
-dipoleAmpImag = imag(dip.complAmpl);
 
-% Normalize the real and imaginary parts separately and keep norms
-maxAmpReal = max(abs(dipoleAmpReal));
-maxAmpImag = max(abs(dipoleAmpImag));
-normalizedAmpReal = dipoleAmpReal / maxAmpReal;
-normalizedAmpImag = dipoleAmpImag / maxAmpImag;
+% Compute the maximum magnitude across all dipole amplitudes
+maxAmp = max(abs(dip.complAmpl));
 
-% Save reference dipole amplitudes after normalization
+% Normalize the complex amplitudes
 dipoleRef = dip;
-dipoleRef.complAmpl = normalizedAmpReal + 1i * normalizedAmpImag;
-
+dipoleRef.complAmpl = dip.complAmpl / maxAmp;
 
 %% --- 1_b Perturbation of Initial Amplitudes ---
-% Generate independent perturbation factors
-realPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
-imagPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
+% Generate complex perturbation factors with small variations
+perturbationFactor = 1 + 0.2 * (randn(numDipoles, 1));
 
-% Apply perturbations separately to real and imaginary parts
-perturbedAmp = real(dip.complAmpl) .* realPerturbationFactor + ...
-               1i * imag(dip.complAmpl) .* imagPerturbationFactor;
+% Apply perturbations to the normalized complex amplitudes
+perturbedAmp = dipoleRef.complAmpl .* perturbationFactor;
 
-% Normalize perturbed dipole amplitudes
-perturbedAmpReal = real(perturbedAmp);
-perturbedAmpImag = imag(perturbedAmp);
-normalizedPerturbedAmpReal = perturbedAmpReal / max(abs(perturbedAmpReal));
-normalizedPerturbedAmpImag = perturbedAmpImag / max(abs(perturbedAmpImag));
+% Normalize the perturbed amplitudes
+maxPerturbedAmp = max(abs(perturbedAmp));
+dipolePerturbedRef = dip;
+dipolePerturbedRef.complAmpl = perturbedAmp / maxPerturbedAmp;
 
-dipolePerturbedRef.complAmpl = normalizedPerturbedAmpReal + ...
-                               1i * normalizedPerturbedAmpImag;
+%% === Far-Field Comparison: Perturbed vs Reference ===
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+
+%% === Far-Field Comparison: Reference vs Reference ===
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleRef, frequency, 180, 360);
+
+%% === Far-Field Comparison: Perturbed vs Reference ===
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+
+%% === Far-Field Intensity Comparison: Perturbed vs Reference ===
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 
 %% --- 1_c Compute Far-Field Parameters ---
 % Define physical constants
@@ -69,19 +69,19 @@ initialError = optimization.normObjectiveFunction( ...
 disp(['Initial Test Error: ', num2str(initialError)]);
 
 % --- Define Bounds ---
-realLowerBounds = min(normalizedPerturbedAmpReal) * ones(numDipoles, 1);
-realUpperBounds = max(normalizedPerturbedAmpReal) * ones(numDipoles, 1);
-imagLowerBounds = min(normalizedPerturbedAmpImag) * ones(numDipoles, 1);
-imagUpperBounds = max(normalizedPerturbedAmpImag) * ones(numDipoles, 1);
+realPert = real(dipolePerturbedRef.complAmpl);
+imagPert = imag(dipolePerturbedRef.complAmpl);
 
-% Create final lower and upper bounds
-lB = [realLowerBounds; imagLowerBounds];
-uB = [realUpperBounds; imagUpperBounds];
+ampMinReal = min(realPert);  ampMaxReal = max(realPert);
+ampMinImag = min(imagPert);  ampMaxImag = max(imagPert);
+
+lB = [ampMinReal * ones(numDipoles, 1); ampMinImag * ones(numDipoles, 1)];
+uB = [ampMaxReal * ones(numDipoles, 1); ampMaxImag * ones(numDipoles, 1)];
 
 
 %% --- 2. Optimization Using PSO ---
 % Create initial guess for PSO
-initialGuess = [normalizedPerturbedAmpReal; normalizedPerturbedAmpImag]';
+initialGuess = [real(dipolePerturbedRef.complAmpl); imag(dipolePerturbedRef.complAmpl)]';
 
 % Ensure correct size of initial swarm
 swarmSize = numDipoles*2;
@@ -115,20 +115,12 @@ disp(['Final Error (PSO): ', num2str(finalError_pso)]);
 dipolePso = dipoleRef;
 dipolePso.complAmpl = optAmps_pso;
 
-fF_pso = fieldEvaluation.farFieldM2(rObserved, dipolePso, frequency);
-totalPower_pso = sum(sum(fF_pso .* conj(fF_pso), 2) .* weights) / (2 * construct.Z0);
-
 % PSO Plot
-figure;
-hold on;
-plot(real(fF_pso/sqrt(totalPower_pso)), 'rx', 'MarkerSize', 6);
-plot(imag(fF_pso)/sqrt(totalPower_pso), 'bx', 'MarkerSize', 6);
-plot(real(fF_ref/sqrt(totalPower_ref)), 'ro', 'MarkerSize', 8);
-plot(imag(fF_ref)/sqrt(totalPower_ref), 'bo', 'MarkerSize', 8);
-title('PSO');
-grid on;
-hold off;
+%% === Far-Field Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePso, frequency, 180, 360);
 
+%% === Far-Field Intensity Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePso, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 %% --- 3. Optimization Using fmincon ---
 
 initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % serialization of optimizations
@@ -162,62 +154,46 @@ fF_Fmincon = fieldEvaluation.farFieldM2(rObserved, dipoleFmincon, frequency);
 totalPower_Fmincon = sum(sum(fF_Fmincon .* conj(fF_Fmincon), 2) .* weights) / (2 * construct.Z0);
 
 
+
+simAmpReal = real(dipoleFmincon.complAmpl);
+simAmpImag = imag(dipoleFmincon.complAmpl);
+normalizedsimAmpReal = simAmpReal * max(abs(simAmpReal));
+normalizedsimAmpImag = simAmpImag * max(abs(simAmpImag));
+
+dipoleFmincon.complAmpl = normalizedsimAmpReal + ...
+                               1i * normalizedsimAmpImag;
 % Fmincon Plot
+%% === Far-Field Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+
+%% === Far-Field Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+
+%% === Far-Field Intensity Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
+
+%% --- 4. Near-Field Evaluation and Visualization ---
+
+% Define a 2D grid in the XZ-plane centered around the dipole structure
+gridRange = 0.2;            % Spatial extent in meters (adjust as needed)
+gridRes = 200;              % Number of grid points per axis
+
+xVals = linspace(-gridRange, gridRange, gridRes);
+yVals = 0;                  % Single plane: y = 0 (XZ plane)
+zVals = linspace(-gridRange, gridRange, gridRes);
+
+gridSpec.x = xVals;
+gridSpec.y = yVals;
+gridSpec.z = zVals;
+
+% Evaluate near-field using optimized dipole model
+[Efield, Hfield, Sfield, grid] = utilities.visualizations.evaluateNearFieldGrid(dipoleFmincon, frequency, gridSpec);
+
+% Visualize Poynting vector magnitude (log scale recommended for clarity)
 figure;
-hold on;
-plot(real(fF_Fmincon/sqrt(totalPower_Fmincon)), 'rx', 'MarkerSize', 6);
-plot(imag(fF_Fmincon)/sqrt(totalPower_Fmincon), 'bx', 'MarkerSize', 6);
-plot(real(fF_ref/sqrt(totalPower_ref)), 'ro', 'MarkerSize', 8);
-plot(imag(fF_ref)/sqrt(totalPower_ref), 'bo', 'MarkerSize', 8);
-title('Fmincon');
-grid on;
-hold off;
-
-%% --- 4. Optimization Using GA ---
-
-initialGuess = [normalizedPerturbedAmpReal; normalizedPerturbedAmpImag]';
-
-% Ensure correct size of initial population
-populationSize = swarmSize;
-initialPopulationMatrix = repmat(initialGuess, populationSize, 1);
-
-options_ga = optimoptions('ga', ...
-    'PopulationSize', populationSize, ...      % Number of individuals in the population
-    'MaxGenerations', 200, ...                 % Maximum number of generations
-    'CrossoverFraction', 0.8, ...              % Crossover fraction
-    'EliteCount', 2, ...                       % Number of elite individuals
-    'FunctionTolerance', 1e-8, ...             % Stop if function value improvement is below this threshold
-    'MutationFcn', {@mutationadaptfeasible, 0.1}, ... % Mutation function
-    'Display', 'iter', ...                     % Show progress at each iteration
-    'InitialPopulationMatrix', initialPopulationMatrix ... % Set custom initial population
-    );
-
-optimFun_ga = @(amp) ...
-    optimization.normObjectiveFunction(amp(1:numDipoles).' + ...
-    1i * amp((numDipoles+1):(numDipoles*2)).', dip, frequency, points, ...
-    weights, fF_ref, totalPower_ref);
-
-% Run GA for Amplitude Recovery
-[optAmps_ga_vec, finalError_ga] = ga(optimFun_ga, 2 * numDipoles, [], [], [], [], lB, uB, [], options_ga);
-
-optAmps_ga = nan(numDipoles, 1);
-optAmps_ga(:, 1) = optAmps_ga_vec(1:numDipoles) + 1i * optAmps_ga_vec((numDipoles+1):(numDipoles*2));
-
-disp(['Final Error (GA): ', num2str(finalError_ga)]);
-
-dipoleGa = dipoleRef;
-dipoleGa.complAmpl = optAmps_ga;
-
-fF_ga = fieldEvaluation.farFieldM2(rObserved, dipoleGa, frequency);
-totalPower_ga = sum(sum(fF_ga .* conj(fF_ga), 2) .* weights) / (2 * construct.Z0);
-
-% GA Plot
-figure;
-hold on;
-plot(real(fF_ga/sqrt(totalPower_ga)), 'rx', 'MarkerSize', 6);
-plot(imag(fF_ga)/sqrt(totalPower_ga), 'bx', 'MarkerSize', 6);
-plot(real(fF_ref/sqrt(totalPower_ref)), 'ro', 'MarkerSize', 8);
-plot(imag(fF_ref)/sqrt(totalPower_ref), 'bo', 'MarkerSize', 8);
-title('GA');
-grid on;
-hold off;
+imagesc(grid.x, grid.z, log10(squeeze(Sfield(:,1,:))));
+axis equal tight;
+xlabel('x [m]');
+ylabel('z [m]');
+title('Near-Field Poynting Vector Magnitude (log_{10})');
+colorbar;

@@ -116,7 +116,7 @@ initialSwarmMatrix = repmat(initialGuess, swarmSize, 1);
 % Define PSO optimization settings
 options_pso = optimoptions('particleswarm', ...
     'SwarmSize', swarmSize, ...                 % Number of particles
-    'MaxIterations', 200, ...                   % Iteration limit
+    'MaxIterations', 400, ...                   % Iteration limit
     'InertiaRange', [0.3, 1.5], ...             % Inertia control for convergence behavior
     'SelfAdjustmentWeight', 1.1, ...            % Particle's self-exploration factor
     'SocialAdjustmentWeight', 1.05, ...         % Attraction to global best solution
@@ -157,7 +157,7 @@ initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % ser
 options_fmincon = optimoptions('fmincon', ...
     'Algorithm', 'sqp', ...             % Use Sequential Quadratic Programming (SQP) algorithm
     'MaxIterations', 100, ...           % Maximum number of iterations
-    'MaxFunctionEvaluations', 25000, ... % Maximum number of function evaluations
+    'MaxFunctionEvaluations', 50000, ... % Maximum number of function evaluations
     'OptimalityTolerance', 1e-12, ...   % Stop if optimality conditions are met within this tolerance
     'StepTolerance', 1e-12, ...         % Stop if step size is below this threshold
     'Display', 'iter');                 % Display iteration details 

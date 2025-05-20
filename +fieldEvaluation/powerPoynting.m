@@ -14,6 +14,6 @@ function [powerPoynt] = powerPoynting(eF, mF)
 % ------------------------------------------------------------------------
 
 % Step 1: Compute the real part of E × H*
-powerPoynt = real(utilities.rowCross(eF, conj(mF))) / 2;
+powerPoynt = (1/2)*real(utilities.rowCross(eF, conj(mF))) / 2;
 
 end

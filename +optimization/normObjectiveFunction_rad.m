@@ -2,12 +2,10 @@ function totalError = normObjectiveFunction_rad(dip, inputData)
 %COMPUTERADIATIONERROR Computes the normalized error between
 %                      reference and simulated far-field power densities
 %                      in vertical and horizontal planes.
-%
 %   Inputs:
 %       dip        - Struct with dipole data, including `complAmpl`
 %       inputData  - Struct containing reference power densities, weights,
 %                    observation points, and frequency.
-%
 %   Output:
 %       totalError - Combined vertical and horizontal normalized error (scalar)
 

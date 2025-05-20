@@ -66,8 +66,8 @@ error = optimization.normObjectiveFunction_rad(dipoleRef, inputData);
 disp(['Initial Test After Normalization: ', num2str(error)]);
 
 %% Create perturbed (test) amplitudes with small noise
-realPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
-imagPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
+realPerturbationFactor = 1 + 0.01 * randn(numDipoles, 1);
+imagPerturbationFactor = 1 + 0.01 * randn(numDipoles, 1);
 
 perturbedAmp = real(dip.complAmpl) .* realPerturbationFactor + ...
                1i * imag(dip.complAmpl) .* imagPerturbationFactor;
@@ -89,14 +89,6 @@ dip.complAmpl = dipolePerturbedRef.complAmpl;
 error = optimization.normObjectiveFunction_rad(dip, inputData);
 disp(['Initial Test Error perturbed dip: ', num2str(error)]);
 
-%% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360);
-
-%% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
-
-exportgraphics(gcf, 'farFieldComparison.png', ...
-    'Resolution', 300, 'BackgroundColor', 'white');
 %% --- 2. Optimization Using PSO FF---
 
 % --- Define Bounds ---
@@ -154,7 +146,7 @@ dipolePso.complAmpl=optAmps_pso;
 utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePso, inputData.freq, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePso, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePso, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 
 %% --- 3. Optimization Using fmincon ---
 initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % serialization of optimizations

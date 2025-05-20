@@ -42,7 +42,7 @@ phase = exp(1i * k * sum(rHat .* repelem(dip.pos, nObs, 1), 2));
 
 %% Step 6: Compute Electric Field Using Dipole Far-Field Expression
 % Vector cross product formulation for far-field electric field:
-% E_far = (Z0 * c * k^2 / 4π) * exp(i * k * r̂ ⋅ r_dip) * [r̂ × (r̂ × Mp)]
+% E_far = (Z0 * c * k^2 / 4π) * exp(i * k * r̂ ⋅ r_dip) * [-r̂ × (r̂ × Mp)]
 fF = construct.Z0 * construct.c0 * k^2 / (4 * pi) * ...
      (phase .* utilities.rowCross(-rHat, utilities.rowCross(rHat, Mp)));
 

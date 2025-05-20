@@ -6,7 +6,7 @@ load('tests/test_structure_2/DipoleArray.mat');  % loads 'dip' and 'f0List'
 f0 = f0List;
 
 %% Generate far-field for vertical and horizontal planes
-N_points = 180;
+N_points = 90;
 angles = linspace(0, 2*pi*(N_points-1)/N_points, N_points).';
 
 horizontal_points = [cos(angles), sin(angles), zeros(N_points,1)];

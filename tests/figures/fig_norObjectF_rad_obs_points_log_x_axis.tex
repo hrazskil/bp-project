@@ -1,0 +1,85 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.953\linewidth,
+height=\linewidth,
+at={(0\linewidth,0\linewidth)},
+scale only axis,
+xmode=log,
+xmin=6,
+xmax=10000,
+xminorticks=true,
+xlabel style={font=\color{white!15!black}},
+xlabel={Number of Observation Points (both planes sumed)},
+ymin=0,
+ymax=0.5,
+ylabel style={font=\color{white!15!black}},
+ylabel={Computation Time (s)},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={Runtime of normObjectiveFunction\_rad vs Number of Points},
+xmajorgrids,
+xminorgrids,
+ymajorgrids
+]
+\addplot [color=mycolor1, line width=2.0pt, mark=square, mark options={solid, mycolor1}, forget plot]
+  table[row sep=crcr]{%
+6	0.000473808875\\
+14	0.00077389665\\
+26	0.00114427465\\
+38	0.00178643465\\
+50	0.00226429465\\
+74	0.00372709465\\
+86	0.00440340465\\
+110	0.00566645465\\
+146	0.00867198965\\
+170	0.01160956465\\
+194	0.01469967965\\
+230	0.01742931465\\
+266	0.02041155465\\
+302	0.02496631465\\
+350	0.02903350965\\
+434	0.03464660965\\
+590	0.04852718965\\
+770	0.06204227465\\
+974	0.07764928465\\
+1202	0.09775520965\\
+1454	0.12348038465\\
+1730	0.14501002965\\
+2030	0.16700670465\\
+2354	0.19141615965\\
+2702	0.22522828465\\
+3074	0.24673384465\\
+3470	0.27856871965\\
+3890	0.30522549965\\
+4334	0.32813046965\\
+4802	0.38154165965\\
+5294	0.41791591465\\
+5810	0.45726774465\\
+};
+\end{axis}
+
+\begin{axis}[%
+width=1.229\linewidth,
+height=1.229\linewidth,
+at={(-0.16\linewidth,-0.137\linewidth)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left
+]
+\end{axis}
+\end{tikzpicture}%

@@ -66,20 +66,20 @@ clim_diff = [-vmax_abs, vmax_abs];
 figure('Name','Far-Field Intensity Comparison (Normalized)', 'Position', [100, 100, 1400, 500]);
 
 subplot(1,3,1);
-imagesc(rad2deg(phi), rad2deg(theta), intensity_ref_dB_norm);
-xlabel('\phi [\circ]'); ylabel('\theta [\circ]');
+imagesc(phi/pi, theta/pi, intensity_ref_dB_norm);
+    xlabel('\phi/\pi'); ylabel('\theta/\pi');
 title('Reference Intensity (Normalized dB)');
 colorbar; axis xy; clim(clim_ref);
 
 subplot(1,3,2);
-imagesc(rad2deg(phi), rad2deg(theta), intensity_pso_dB_norm);
-xlabel('\phi [\circ]'); ylabel('\theta [\circ]');
+imagesc(phi/pi, theta/pi, intensity_pso_dB_norm);
+    xlabel('\phi/\pi'); ylabel('\theta/\pi');
 title('Optimized Intensity (Normalized dB)');
 colorbar; axis xy; clim(clim_pso);
 
 subplot(1,3,3);
-imagesc(rad2deg(phi), rad2deg(theta), intensity_diff_dB);
-xlabel('\phi [\circ]'); ylabel('\theta [\circ]');
+imagesc(phi/pi, theta/pi, intensity_diff_dB);
+    xlabel('\phi/\pi'); ylabel('\theta/\pi');
 title('Difference (Optimized - Reference) [dB]');
 colorbar; axis xy; clim(clim_diff);
 end
