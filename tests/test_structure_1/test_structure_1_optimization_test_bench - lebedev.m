@@ -5,7 +5,7 @@ clc; clear; close all;
 load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_1\halfwaveDipole.mat');
 frequency = f0List; % Frequency of 1 GHz
 
-% Extract real and imaginary parts of dipole amplitudes
+% Extract numDipoles
 numDipoles = numel(dip.complAmpl);
 
 % Compute the maximum magnitude across all dipole amplitudes
@@ -17,7 +17,7 @@ dipoleRef.complAmpl = dip.complAmpl / maxAmp;
 
 %% --- 1_b Perturbation of Initial Amplitudes ---
 % Generate complex perturbation factors with small variations
-perturbationFactor = 1 + 0.2 * (randn(numDipoles, 1));
+perturbationFactor = 1 + 0.1 * (randn(numDipoles, 1));
 
 % Apply perturbations to the normalized complex amplitudes
 perturbedAmp = dipoleRef.complAmpl .* perturbationFactor;
@@ -26,18 +26,6 @@ perturbedAmp = dipoleRef.complAmpl .* perturbationFactor;
 maxPerturbedAmp = max(abs(perturbedAmp));
 dipolePerturbedRef = dip;
 dipolePerturbedRef.complAmpl = perturbedAmp / maxPerturbedAmp;
-
-%% === Far-Field Comparison: Perturbed vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
-
-%% === Far-Field Comparison: Reference vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleRef, frequency, 180, 360);
-
-%% === Far-Field Comparison: Perturbed vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
-
-%% === Far-Field Intensity Comparison: Perturbed vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 
 %% --- 1_c Compute Far-Field Parameters ---
 % Define physical constants
@@ -62,9 +50,21 @@ fF_ref = fieldEvaluation.farFieldM2(rObserved, dipoleRef, frequency);
 totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
 
 
+%% === Far-Field Comparison: Perturbed vs Reference ===
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+
+%% === Far-Field Comparison: Reference vs Reference ===
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleRef, frequency, 180, 360);
+
+%% === Far-Field Comparison: Perturbed vs Reference ===
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+
+%% === Far-Field Intensity Comparison: Perturbed vs Reference ===
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+
 %% --- 1_d Validate Objective Function Before Optimization ---
 initialError = optimization.normObjectiveFunction( ...
-    dipolePerturbedRef.complAmpl, dip, frequency, points, weights, ...
+    dipolePerturbedRef.complAmpl, dip, frequency, points,  weights, ...
     fF_ref, totalPower_ref);
 disp(['Initial Test Error: ', num2str(initialError)]);
 
