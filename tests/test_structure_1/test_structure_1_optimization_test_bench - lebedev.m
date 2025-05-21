@@ -115,12 +115,6 @@ disp(['Final Error (PSO): ', num2str(finalError_pso)]);
 dipolePso = dipoleRef;
 dipolePso.complAmpl = optAmps_pso;
 
-% PSO Plot
-%% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePso, frequency, 180, 360);
-
-%% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePso, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 %% --- 3. Optimization Using fmincon ---
 
 initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % serialization of optimizations
@@ -155,13 +149,9 @@ totalPower_Fmincon = sum(sum(fF_Fmincon .* conj(fF_Fmincon), 2) .* weights) / (2
 
 
 
-simAmpReal = real(dipoleFmincon.complAmpl);
-simAmpImag = imag(dipoleFmincon.complAmpl);
-normalizedsimAmpReal = simAmpReal * max(abs(simAmpReal));
-normalizedsimAmpImag = simAmpImag * max(abs(simAmpImag));
 
-dipoleFmincon.complAmpl = normalizedsimAmpReal + ...
-                               1i * normalizedsimAmpImag;
+
+
 % Fmincon Plot
 %% === Far-Field Comparison: Optimized vs Reference ===
 utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);

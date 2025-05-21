@@ -183,32 +183,32 @@ utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFminco
 utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.00005);
 
 
-% 
-% %% PSO optimization
-% options_pso = optimoptions('particleswarm', ...
-%     'SwarmSize', 100, 'MaxIterations', 200, 'Display', 'iter');
-% 
-% [x_pso, err_pso] = particleswarm(optimFun, 2*numDipoles, lb, ub, options_pso);
-% disp(['PSO error: ', num2str(err_pso)]);
-% 
-% %% fmincon refinement
-% options_fmc = optimoptions('fmincon', 'Algorithm', 'sqp', ...
-%     'MaxIterations', 300, 'MaxFunctionEvaluations', 5000, 'Display', 'iter');
-% 
-% [x_fmc, err_fmc] = fmincon(optimFun, x_pso, [], [], [], [], lb, ub, [], options_fmc);
-% disp(['Final error after fmincon: ', num2str(err_fmc)]);
-% 
-% % Reconstruct final complex amplitudes
-% dipOptimized = dip;
-% dipOptimized.complAmpl = x_fmc(1:numDipoles) * maxReal + 1i * x_fmc(numDipoles+1:end) * maxImag;
-% 
-% %% Final evaluation
-% finalError = optimization.normObjectiveFunction_rad(dipOptimized, inputData);
-% disp(['Final normalized error: ', num2str(finalError)]);
-% 
-% %% === Far-Field Comparison: Optimized vs Reference ===
-% utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360);
-% 
-% 
-% %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-% utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.00005);
+
+%% PSO optimization
+options_pso = optimoptions('particleswarm', ...
+    'SwarmSize', 100, 'MaxIterations', 200, 'Display', 'iter');
+
+[x_pso, err_pso] = particleswarm(optimFun, 2*numDipoles, lb, ub, options_pso);
+disp(['PSO error: ', num2str(err_pso)]);
+
+%% fmincon refinement
+options_fmc = optimoptions('fmincon', 'Algorithm', 'sqp', ...
+    'MaxIterations', 300, 'MaxFunctionEvaluations', 5000, 'Display', 'iter');
+
+[x_fmc, err_fmc] = fmincon(optimFun, x_pso, [], [], [], [], lb, ub, [], options_fmc);
+disp(['Final error after fmincon: ', num2str(err_fmc)]);
+
+% Reconstruct final complex amplitudes
+dipOptimized = dip;
+dipOptimized.complAmpl = x_fmc(1:numDipoles) * maxReal + 1i * x_fmc(numDipoles+1:end) * maxImag;
+
+%% Final evaluation
+finalError = optimization.normObjectiveFunction_rad(dipOptimized, inputData);
+disp(['Final normalized error: ', num2str(finalError)]);
+
+%% === Far-Field Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360);
+
+
+%% === Far-Field Intensity Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.00005);

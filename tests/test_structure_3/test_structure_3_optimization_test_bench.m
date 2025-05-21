@@ -2,37 +2,37 @@
 clc; clear; close all;
 
 %% Load saved far-field data
-load('tests/test_structure_2/BTSdataVertical.tsv');   % vertical far-field data
-load('tests/test_structure_2/BTSdataHorizontal.tsv'); % horizontal far-field data
+load('tests/test_structure_3/BTSdataVertical.tsv');   % vertical far-field data
+load('tests/test_structure_3/BTSdataHorizontal.tsv'); % horizontal far-field data
 
 %% Number of observation points
-Nbeta = size(dataHorizontal(:,2),1);  % number of azimuthal observations
-Nphi = size(dataVertical(:,2),1);     % number of elevation observations
+Nbeta = size(BTSdataHorizontal(:,2),1);  % number of azimuthal observations
+Nphi = size(BTSdataVertical(:,2),1);     % number of elevation observations
 
 % Reconstruct Cartesian observation points from angles
-x1 = cos(dataVertical(:,1));
+x1 = cos(BTSdataVertical(:,1));
 y1 = 0*x1;
-z1 = sin(dataVertical(:,1));
+z1 = sin(BTSdataVertical(:,1));
 
-x2 = cos(dataHorizontal(:,1));
-y2 = sin(dataHorizontal(:,1));
+x2 = cos(BTSdataHorizontal(:,1));
+y2 = sin(BTSdataHorizontal(:,1));
 z2 = 0*x2;
 
 vertical_points = [x1, y1, z1];
 horizontal_points = [x2, y2, z2];
 
 % Create input data structure for optimization
-inputData.horizontal.rad = dataHorizontal(:,2);
+inputData.horizontal.rad = BTSdataHorizontal(:,2);
 inputData.horizontal.points = horizontal_points;
 inputData.horizontal.weights = ones(Nbeta, 1);
 inputData.horizontal.totalPower = sum(inputData.horizontal.rad);
 
-inputData.vertical.rad = dataVertical(:,2);
+inputData.vertical.rad = BTSdataVertical(:,2);
 inputData.vertical.points = vertical_points;
 inputData.vertical.weights = ones(Nphi, 1);
 inputData.vertical.totalPower = sum(inputData.vertical.rad);
 
-inputData.freq = f0List;
+inputData.freq = 785000000.000000;
 
 %% Dipole grid generation
 % === Parameters for Crossed Dipole "Pluses" ===
@@ -134,7 +134,7 @@ maxAmp = max(abs(dip.complAmpl));
 dipoleRef = dip;
 dipoleRef.complAmpl = dip.complAmpl / maxAmp;
 
-%% --- 1_b Perturbation of Initial Amplitudes ---
+%% --- 2 Perturbation of Initial Amplitudes ---
 % Generate complex perturbation factors with small variations
 perturbationFactor = 1 + 0.1 * (randn(numDipoles, 1));
 
@@ -146,11 +146,23 @@ maxPerturbedAmp = max(abs(perturbedAmp));
 dipolePerturbedRef = dip;
 dipolePerturbedRef.complAmpl = perturbedAmp / maxPerturbedAmp;
 
-%% --- 1_d Validate Objective Function Before Optimization ---
-initialError = optimization.normObjectiveFunction( ...
-    dipolePerturbedRef.complAmpl, dip, frequency, points, weights, ...
-    fF_ref, totalPower_ref);
-disp(['Initial Test Error: ', num2str(initialError)]);
+% Use perturbed amplitudes for error evaluation
+dip.complAmpl = dipolePerturbedRef.complAmpl;
+tic
+error = optimization.normObjectiveFunction_rad(dip, inputData);
+toc
+disp(['Initial Test Error perturbed dip: ', num2str(error)]);
+
+%% === Far-Field Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+
+%% === Far-Field Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+
+%% === Far-Field Intensity Comparison: Optimized vs Reference ===
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+
+%% --- 3. Optimization Using PSO ---
 
 % --- Define Bounds ---
 realPert = real(dipolePerturbedRef.complAmpl);
@@ -162,49 +174,45 @@ ampMinImag = min(imagPert);  ampMaxImag = max(imagPert);
 lB = [ampMinReal * ones(numDipoles, 1); ampMinImag * ones(numDipoles, 1)];
 uB = [ampMaxReal * ones(numDipoles, 1); ampMaxImag * ones(numDipoles, 1)];
 
-
-%% --- 2. Optimization Using PSO ---
-% Create initial guess for PSO
+% --- Initialize PSO Parameters ---
+% Combine real and imaginary parts into a single initial guess vector
 initialGuess = [real(dipolePerturbedRef.complAmpl); imag(dipolePerturbedRef.complAmpl)]';
 
-% Ensure correct size of initial swarm
-swarmSize = numDipoles*2;
+% Create swarm matrix by replicating the initial guess (each row is a particle)
+swarmSize = numDipoles/2;  % Swarm size is double the number of dipoles (real + imag)
 initialSwarmMatrix = repmat(initialGuess, swarmSize, 1);
 
+% Define PSO optimization settings
 options_pso = optimoptions('particleswarm', ...
-    'SwarmSize', swarmSize, ...                 % Number of particles in the swarm
-    'MaxIterations', 200, ...                   % Maximum number of iterations
-    'InertiaRange', [0.3, 1.5], ...             % Range for inertia weight (balance exploration/exploitation)
-    'SelfAdjustmentWeight', 1.1, ...            % Weight for a particle's own best experience
-    'SocialAdjustmentWeight', 1.05, ...         % Weight for following the global best solution
-    'FunctionTolerance', 1e-10, ...             % Stop if function value improvement is below this threshold
-    'MaxStallIterations', 40, ...               % Stop if no improvement in 40 consecutive iterations
-    'InitialSwarmMatrix', initialSwarmMatrix,...% Set custom initial positions for the swarm
-    'Display', 'iter' ...                       % Show progress at each iteration
+    'SwarmSize', swarmSize, ...                 % Number of particles
+    'MaxIterations', 400, ...                   % Iteration limit
+    'InertiaRange', [0.3, 1.5], ...             % Inertia control for convergence behavior
+    'SelfAdjustmentWeight', 1.1, ...            % Particle's self-exploration factor
+    'SocialAdjustmentWeight', 1.05, ...         % Attraction to global best solution
+    'FunctionTolerance', 1e-6, ...             % Stop when improvement is below threshold
+    'MaxStallIterations', 20, ...               % Stop when no progress in 40 iterations
+    'InitialSwarmMatrix', initialSwarmMatrix,...% Custom initial particle positions
+    'Display', 'iter' ...                       % Show iteration info in console
     );  
 
-optimFun = @(amp) ...
-    optimization.normObjectiveFunction(amp(1:numDipoles).' + ...
-    1i * amp((numDipoles+1):(numDipoles*2)).', dip, frequency, points, ...
-    weights, fF_ref, totalPower_ref);
+% --- Objective Function Definition ---
+% This function evaluates the fitness of a candidate amplitude vector
+% Split real and imag parts, construct complex amplitude vector, and evaluate error
+optimFun = @(amp) optimization.optimFunX(amp, dip, inputData, numDipoles);
 
-% Run PSO for Amplitude Recovery
+% --- Run Particle Swarm Optimization ---
+% Optimize dipole amplitudes to match far-field radiation
 [optAmps_pso_vec, finalError_pso] = particleswarm(optimFun, 2 * numDipoles, lB, uB, options_pso);
 
+% Combine optimized real and imaginary parts into complex amplitudes
 optAmps_pso = nan(numDipoles,1);
 optAmps_pso(:,1) = optAmps_pso_vec(1:numDipoles) + 1i * optAmps_pso_vec((numDipoles+1):(numDipoles*2));
 
+% Show final optimization error
 disp(['Final Error (PSO): ', num2str(finalError_pso)]);
-
 dipolePso = dipoleRef;
-dipolePso.complAmpl = optAmps_pso;
+dipolePso.complAmpl=optAmps_pso;
 
-% PSO Plot
-%% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePso, frequency, 180, 360);
-
-%% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePso, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 %% --- 3. Optimization Using fmincon ---
 
 initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % serialization of optimizations
@@ -254,4 +262,4 @@ utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFminco
 utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);

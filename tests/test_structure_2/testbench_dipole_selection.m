@@ -21,8 +21,8 @@ dipoleRef.complAmpl = normalizedAmpReal + 1i * normalizedAmpImag;
 
 %% --- 1_b Perturbation of Initial Amplitudes ---
 % Generate independent random perturbation factors for real and imaginary parts
-realPerturbationFactor = 1 + 0.001 * randn(numDipoles, 1); % No perturbation in this case, set stddev > 0 for variation
-imagPerturbationFactor = 1 + 0.001 * randn(numDipoles, 1);
+realPerturbationFactor = 1 + 0.01 * randn(numDipoles, 1); % No perturbation in this case, set stddev > 0 for variation
+imagPerturbationFactor = 1 + 0.01 * randn(numDipoles, 1);
 
 % Apply perturbations separately to real and imaginary components of dipole amplitudes
 perturbedAmp = real(dip.complAmpl) .* realPerturbationFactor + ...

@@ -66,8 +66,8 @@ error = optimization.normObjectiveFunction_rad(dipoleRef, inputData);
 disp(['Initial Test After Normalization: ', num2str(error)]);
 
 %% Create perturbed (test) amplitudes with small noise
-realPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
-imagPerturbationFactor = 1 + 0.1 * randn(numDipoles, 1);
+realPerturbationFactor = 1 + 0.5 * randn(numDipoles, 1);
+imagPerturbationFactor = 1 + 0.5 * randn(numDipoles, 1);
 
 perturbedAmp = real(dip.complAmpl) .* realPerturbationFactor + ...
                1i * imag(dip.complAmpl) .* imagPerturbationFactor;
@@ -93,7 +93,7 @@ disp(['Initial Test Error perturbed dip: ', num2str(error)]);
 utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360);
 
 exportgraphics(gcf, 'farFieldComparison.png', ...
     'Resolution', 300, 'BackgroundColor', 'white');
