@@ -1,0 +1,85 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.953\linewidth,
+height=\linewidth,
+at={(0\linewidth,0\linewidth)},
+scale only axis,
+xmode=log,
+xmin=6,
+xmax=10000,
+xminorticks=true,
+xlabel style={font=\color{white!15!black}},
+xlabel={Number of Observation Points (Lebedev Degrees)},
+ymin=0,
+ymax=0.45,
+ylabel style={font=\color{white!15!black}},
+ylabel={Computation Time (s)},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={Benchmark of normObjectiveFunction with Varying degrees},
+xmajorgrids,
+xminorgrids,
+ymajorgrids
+]
+\addplot [color=mycolor1, line width=2.0pt, mark=o, mark options={solid, mycolor1}, forget plot]
+  table[row sep=crcr]{%
+6	0.000337500020833333\\
+14	0.00057665165\\
+26	0.00116483965\\
+38	0.00189066965\\
+50	0.00286797465\\
+74	0.00538598465\\
+86	0.00655459965\\
+110	0.00951303465\\
+146	0.01256474965\\
+170	0.01512889465\\
+194	0.01647240465\\
+230	0.01829763465\\
+266	0.02124093465\\
+302	0.02447593965\\
+350	0.02746026465\\
+434	0.03451771965\\
+590	0.04746050465\\
+770	0.05981991465\\
+974	0.07894147465\\
+1202	0.09781619465\\
+1454	0.11818189465\\
+1730	0.14849092465\\
+2030	0.16712515465\\
+2354	0.19720114465\\
+2702	0.22588375465\\
+3074	0.25430425465\\
+3470	0.27388376965\\
+3890	0.30363627965\\
+4334	0.33574428465\\
+4802	0.37640262965\\
+5294	0.40005897965\\
+5810	0.44376187465\\
+};
+\end{axis}
+
+\begin{axis}[%
+width=1.229\linewidth,
+height=1.229\linewidth,
+at={(-0.16\linewidth,-0.137\linewidth)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left
+]
+\end{axis}
+\end{tikzpicture}%

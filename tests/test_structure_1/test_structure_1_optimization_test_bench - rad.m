@@ -39,25 +39,11 @@ inputData.vertical.totalPower = ...
 
 inputData.freq = f0List;  % Frequency list used in computation
 
-%% Compute initial error with true amplitudes
-ampGuess = dip.complAmpl; 
-dip.complAmpl = ampGuess; 
-error = optimization.normObjectiveFunction_rad(dip, inputData);
-disp(['Initial Test Error: ', num2str(error)]);
-
-%% Normalize true dipole amplitudes
-numDipoles = numel(dip.complAmpl);
-dipoleAmpReal = real(dip.complAmpl);
-dipoleAmpImag = imag(dip.complAmpl);
-
-maxAmpReal = max(max(abs(dipoleAmpReal)),eps);
-maxAmpImag = max(max(abs(dipoleAmpImag)),eps);
-
-normalizedAmpReal = dipoleAmpReal / maxAmpReal;
-normalizedAmpImag = dipoleAmpImag / maxAmpImag;
-
+%% Reference dipole amplitudes
 dipoleRef = dip;
-dipoleRef.complAmpl = normalizedAmpReal + 1i * normalizedAmpImag;
+
+% Extract numDipoles
+numDipoles = numel(dipoleRef.complAmpl);
 
 %% Compute initial error with true amplitudes
 ampGuess = dip.complAmpl; 
@@ -65,55 +51,62 @@ dip.complAmpl = ampGuess;
 error = optimization.normObjectiveFunction_rad(dipoleRef, inputData);
 disp(['Initial Test After Normalization: ', num2str(error)]);
 
-%% Create perturbed (test) amplitudes with small noise
-realPerturbationFactor = 1 + 0.5 * randn(numDipoles, 1);
-imagPerturbationFactor = 1 + 0.5 * randn(numDipoles, 1);
+%% Perturb amplitudes
+perturbationFactor = 0.5*abs(dipoleRef.complAmpl).*(randn(numDipoles, 1)+1i*randn(numDipoles, 1));
 
-perturbedAmp = real(dip.complAmpl) .* realPerturbationFactor + ...
-               1i * imag(dip.complAmpl) .* imagPerturbationFactor;
+dipolePerturbed = dipoleRef;
 
-% Normalize perturbed amplitudes
-perturbedAmpReal = real(perturbedAmp);
-perturbedAmpImag = imag(perturbedAmp);
+dipolePerturbed.complAmpl = dipoleRef.complAmpl + perturbationFactor;
 
-normalizedPerturbedAmpReal = perturbedAmpReal ./ max(max(abs(perturbedAmpReal)),eps);
-normalizedPerturbedAmpImag = perturbedAmpImag ./ max(max(abs(perturbedAmpImag)),eps);
+%% --- 1_c Compute Far-Field Parameters ---
+% Define physical constants
+construct = utilities.constants.giveConstants();
+omega = 2 * pi * frequency;  % Angular frequency
+k = omega / construct.c0;    % Wavenumber
+rFar = 1e6 / k;              % Large observation distance
 
-% Create new dipole object with perturbed amplitudes
-dipolePerturbedRef = dip;
-dipolePerturbedRef.complAmpl = normalizedPerturbedAmpReal + ...
-                               1i * normalizedPerturbedAmpImag;
+% degree: { 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302,
+%     350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074,
+%     3470, 3890, 4334, 4802, 5294, 5810 };
+Nleb = 350;                 % Number of Lebedev quadrature points
+
+% Get Lebedev quadrature points and weights
+[points, weights, ~] = utilities.getLebedevSphere(Nleb);
+rObserved = points * rFar;   % Scale points to observation distance
+
+% Compute far-field patterns
+fF_ref = fieldEvaluation.farFieldM2(rObserved, dipoleRef, frequency);
+fF_Perturbed = fieldEvaluation.farFieldM2(rObserved, dipolePerturbed, frequency);
+
+% Compute total radiated power for normalization
+totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
+totalPower_Perturbed = sum(sum(fF_Perturbed .* conj(fF_Perturbed), 2) .* weights) / (2 * construct.Z0);
+
+% normalize
+dipoleRef.complAmpl = dipoleRef.complAmpl / sqrt(totalPower_ref);
+dipolePerturbed.complAmpl = dipolePerturbed.complAmpl / sqrt(totalPower_Perturbed);
+
+%% --- 2. Optimization Using PSO FF---
 
 % Use perturbed amplitudes for error evaluation
-dip.complAmpl = dipolePerturbedRef.complAmpl;
+dip.complAmpl = dipolePerturbed.complAmpl;
 error = optimization.normObjectiveFunction_rad(dip, inputData);
 disp(['Initial Test Error perturbed dip: ', num2str(error)]);
 
-%% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360);
-
-%% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, inputData.freq, 180, 360);
-
-exportgraphics(gcf, 'farFieldComparison.png', ...
-    'Resolution', 300, 'BackgroundColor', 'white');
-%% --- 2. Optimization Using PSO FF---
-
 % --- Define Bounds ---
-% Define element-wise lower and upper bounds for the real and imaginary parts 
-% of the dipole amplitudes based on normalized perturbed values
-realLowerBounds = min(normalizedPerturbedAmpReal) * ones(numDipoles, 1);
-realUpperBounds = max(normalizedPerturbedAmpReal) * ones(numDipoles, 1);
-imagLowerBounds = min(normalizedPerturbedAmpImag) * ones(numDipoles, 1);
-imagUpperBounds = max(normalizedPerturbedAmpImag) * ones(numDipoles, 1);
+realPert = real(dipolePerturbed.complAmpl);
+imagPert = imag(dipolePerturbed.complAmpl);
 
-% Combine bounds into single vectors for PSO input
-lB = [realLowerBounds; imagLowerBounds];
-uB = [realUpperBounds; imagUpperBounds];
+ampMinReal = min(realPert);  ampMaxReal = max(realPert);
+ampMinImag = min(imagPert);  ampMaxImag = max(imagPert);
+
+lB = [ampMinReal * ones(numDipoles, 1); ampMinImag * ones(numDipoles, 1)];
+uB = [ampMaxReal * ones(numDipoles, 1); ampMaxImag * ones(numDipoles, 1)];
 
 % --- Initialize PSO Parameters ---
 % Combine real and imaginary parts into a single initial guess vector
-initialGuess = [normalizedPerturbedAmpReal; normalizedPerturbedAmpImag]';
+% Create initial guess for PSO
+initialGuess = [real(dipolePerturbed.complAmpl); imag(dipolePerturbed.complAmpl)]';
 
 % Create swarm matrix by replicating the initial guess (each row is a particle)
 swarmSize = numDipoles * 2;  % Swarm size is double the number of dipoles (real + imag)
@@ -150,11 +143,6 @@ disp(['Final Error (PSO): ', num2str(finalError_pso)]);
 dipolePso = dipoleRef;
 dipolePso.complAmpl=optAmps_pso;
 
-%% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePso, inputData.freq, 180, 360);
-
-%% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePso, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.0005);
 
 %% --- 3. Optimization Using fmincon ---
 initialGuess = [optAmps_pso_vec(1:numDipoles);...                          % serialization of optimizations
@@ -164,8 +152,8 @@ options_fmincon = optimoptions('fmincon', ...
     'Algorithm', 'sqp', ...             % Use Sequential Quadratic Programming (SQP) algorithm
     'MaxIterations', 100, ...           % Maximum number of iterations
     'MaxFunctionEvaluations', 5000, ... % Maximum number of function evaluations
-    'OptimalityTolerance', 1e-12, ...   % Stop if optimality conditions are met within this tolerance
-    'StepTolerance', 1e-12, ...         % Stop if step size is below this threshold
+    'OptimalityTolerance', 1e-10, ...   % Stop if optimality conditions are met within this tolerance
+    'StepTolerance', 1e-10, ...         % Stop if step size is below this threshold
     'Display', 'iter');                 % Display iteration details 
 
 optimFun = @(amp) optimization.optimFunX(amp, dip, inputData, numDipoles);
@@ -178,15 +166,15 @@ optAmps_fmincon = optAmps_fmincon_vec(1:numDipoles).' + ...
 disp(['Final Error (fmincon): ', num2str(finalError_fmincon)]);
 
 
-dipoleFmincon = dipoleRef;
-dipoleFmincon.complAmpl = optAmps_fmincon;
+dipoleFmincon1 = dipoleRef;
+dipoleFmincon1.complAmpl = optAmps_fmincon;
 
 %% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360);
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon1, inputData.freq, 180, 360);
 
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360, [2 98], [2 98], [1 99], 0.00005);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon1, inputData.freq, 180, 360);
 
 
 % old nearfield

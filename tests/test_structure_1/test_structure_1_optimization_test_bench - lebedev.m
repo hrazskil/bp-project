@@ -5,28 +5,30 @@ clc; clear; close all;
 load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_1\halfwaveDipole.mat');
 frequency = f0List; % Frequency of 1 GHz
 
+dipoleRef = dip;
+
 % Extract numDipoles
 numDipoles = numel(dip.complAmpl);
 
 % Compute the maximum magnitude across all dipole amplitudes
-maxAmp = max(abs(dip.complAmpl));
-
+% maxAmp = max(abs(dip.complAmpl));
 % Normalize the complex amplitudes
-dipoleRef = dip;
-dipoleRef.complAmpl = dip.complAmpl / maxAmp;
+% dipoleRef.complAmpl = dip.complAmpl / maxAmp;
 
-%% --- 1_b Perturbation of Initial Amplitudes ---
+%% Perturb amplitudes
 % Generate complex perturbation factors with small variations
-perturbationFactor = 1 + 0.1 * (randn(numDipoles, 1));
-
+% perturbationFactor = 1 + 0.1 *(randn(numDipoles, 1));
 % Apply perturbations to the normalized complex amplitudes
-perturbedAmp = dipoleRef.complAmpl .* perturbationFactor;
-
+% perturbedAmp = dipoleRef.complAmpl .* perturbationFactor;
 % Normalize the perturbed amplitudes
-maxPerturbedAmp = max(abs(perturbedAmp));
-dipolePerturbedRef = dip;
-dipolePerturbedRef.complAmpl = perturbedAmp / maxPerturbedAmp;
+% maxPerturbedAmp = max(abs(perturbedAmp));
+% dipolePerturbed.complAmpl = perturbedAmp / maxPerturbedAmp;
 
+perturbationFactor = 0.75*abs(dipoleRef.complAmpl).*(randn(numDipoles, 1)+1i*randn(numDipoles, 1));
+
+dipolePerturbed = dipoleRef;
+
+dipolePerturbed.complAmpl = dipoleRef.complAmpl + perturbationFactor;
 %% --- 1_c Compute Far-Field Parameters ---
 % Define physical constants
 construct = utilities.constants.giveConstants();
@@ -43,34 +45,39 @@ Nleb = 350;                 % Number of Lebedev quadrature points
 [points, weights, ~] = utilities.getLebedevSphere(Nleb);
 rObserved = points * rFar;   % Scale points to observation distance
 
-% Compute reference far-field pattern
+% Compute far-field patterns
 fF_ref = fieldEvaluation.farFieldM2(rObserved, dipoleRef, frequency);
+fF_Perturbed = fieldEvaluation.farFieldM2(rObserved, dipolePerturbed, frequency);
 
 % Compute total radiated power for normalization
 totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
+totalPower_Perturbed = sum(sum(fF_Perturbed .* conj(fF_Perturbed), 2) .* weights) / (2 * construct.Z0);
 
+% normalize
+dipoleRef.complAmpl = dipoleRef.complAmpl / sqrt(totalPower_ref);
+dipolePerturbed.complAmpl = dipolePerturbed.complAmpl / sqrt(totalPower_Perturbed);
 
 %% === Far-Field Comparison: Perturbed vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbed, frequency, 180, 360);
 
 %% === Far-Field Comparison: Reference vs Reference ===
 utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleRef, frequency, 180, 360);
 
 %% === Far-Field Comparison: Perturbed vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePerturbed, frequency, 180, 360);
 
 %% === Far-Field Intensity Comparison: Perturbed vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbedRef, frequency, 180, 360);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbed, frequency, 180, 360);
 
-%% --- 1_d Validate Objective Function Before Optimization ---
+%% --- Validate Objective Function Before Optimization ---
 initialError = optimization.normObjectiveFunction( ...
-    dipolePerturbedRef.complAmpl, dip, frequency, points,  weights, ...
+    dipolePerturbed.complAmpl, dip, frequency, points,  weights, ...
     fF_ref, totalPower_ref);
 disp(['Initial Test Error: ', num2str(initialError)]);
 
 % --- Define Bounds ---
-realPert = real(dipolePerturbedRef.complAmpl);
-imagPert = imag(dipolePerturbedRef.complAmpl);
+realPert = real(dipolePerturbed.complAmpl);
+imagPert = imag(dipolePerturbed.complAmpl);
 
 ampMinReal = min(realPert);  ampMaxReal = max(realPert);
 ampMinImag = min(imagPert);  ampMaxImag = max(imagPert);
@@ -81,7 +88,7 @@ uB = [ampMaxReal * ones(numDipoles, 1); ampMaxImag * ones(numDipoles, 1)];
 
 %% --- 2. Optimization Using PSO ---
 % Create initial guess for PSO
-initialGuess = [real(dipolePerturbedRef.complAmpl); imag(dipolePerturbedRef.complAmpl)]';
+initialGuess = [real(dipolePerturbed.complAmpl); imag(dipolePerturbed.complAmpl)]';
 
 % Ensure correct size of initial swarm
 swarmSize = numDipoles*2;
@@ -124,8 +131,8 @@ options_fmincon = optimoptions('fmincon', ...
     'Algorithm', 'sqp', ...             % Use Sequential Quadratic Programming (SQP) algorithm
     'MaxIterations', 100, ...           % Maximum number of iterations
     'MaxFunctionEvaluations', 5000, ... % Maximum number of function evaluations
-    'OptimalityTolerance', 1e-12, ...   % Stop if optimality conditions are met within this tolerance
-    'StepTolerance', 1e-12, ...         % Stop if step size is below this threshold
+    'OptimalityTolerance', 1e-10, ...   % Stop if optimality conditions are met within this tolerance
+    'StepTolerance', 1e-10, ...         % Stop if step size is below this threshold
     'Display', 'iter');                 % Display iteration details 
 
 optimFun_fmincon = @(amp) ...
@@ -160,8 +167,40 @@ utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFminco
 utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360, [2 98], [2 98], [1 99], 0.0005);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
 
+
+%% Step 1: Define Angular Grid
+theta = linspace(0, pi, Ntheta).';              % Zenith angle (0 to pi)
+phi   = linspace(0, 2*pi, Nphi);                % Azimuth angle (0 to 2pi)
+[PHI, THETA] = meshgrid(phi, theta);            % Create 2D angular grid
+
+%% Step 2: Convert to Cartesian Unit Vectors
+[x, y, z] = utilities.transforms.sph2cartCoor(ones(Ntheta * Nphi, 1), THETA(:), PHI(:));
+r_hat = [x, y, z];                    % Flatten to N x 3 matrix
+
+%% Step 3: Evaluate Far-Field Electric Field Vectors
+fF_ref = fieldEvaluation.farFieldM2(r_hat, dipoleRef, freq);
+fF_pso = fieldEvaluation.farFieldM2(r_hat, dipolePso, freq);
+
+%% Step 4: Convert Cartesian to Spherical Field Components
+[~, Fth_ref, Fph_ref] = utilities.transforms.cart2sphVec(x(:), y(:), z(:), fF_ref(:,1), fF_ref(:,2), fF_ref(:,3));
+[~, Fth_pso, Fph_pso] = utilities.transforms.cart2sphVec(x(:), y(:), z(:), fF_pso(:,1), fF_pso(:,2), fF_pso(:,3));
+
+%% Step 5: Reshape Components to Angular Grid
+Fth_ref = reshape(Fth_ref, Ntheta, Nphi);
+Fph_ref = reshape(Fph_ref, Ntheta, Nphi);
+Fth_pso = reshape(Fth_pso, Ntheta, Nphi);
+Fph_pso = reshape(Fph_pso, Ntheta, Nphi);
+
+%% Step 6: Compute Total Intensity
+intensity_ref = abs(Fth_ref).^2 + abs(Fph_ref).^2;
+intensity_pso = abs(Fth_pso).^2 + abs(Fph_pso).^2;
+
+%% Step 7: Normalize (Linear Scale)
+intensity_ref_norm = intensity_ref / max(intensity_ref(:));
+intensity_pso_norm = intensity_pso / max(intensity_pso(:));
+intensity_diff = abs(intensity_pso_norm - intensity_ref_norm);
 %% --- 4. Near-Field Evaluation and Visualization ---
 
 % Define a 2D grid in the XZ-plane centered around the dipole structure

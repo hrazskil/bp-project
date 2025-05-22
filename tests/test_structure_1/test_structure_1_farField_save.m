@@ -7,8 +7,8 @@ load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_1\halfwaveDip
 
 %% --- 1_c Compute Far-Field Parameters (Uniform Grid) ---
 % Define number of sampling points for two angular dimensions
-Nbeta = 360;  % Number of points for vertical plane (elevation)
-Nphi = 360;   % Number of points for horizontal plane (azimuth)
+Nbeta = 180;  % Number of points for vertical plane (elevation)
+Nphi = 180;   % Number of points for horizontal plane (azimuth)
 
 % Angular values for elevation and azimuth
 beta_vals = linspace(0, 2*pi, Nbeta).';

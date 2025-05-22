@@ -1,0 +1,74 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.951\linewidth,
+height=\linewidth,
+at={(0\linewidth,0\linewidth)},
+scale only axis,
+xmin=0,
+xmax=800,
+xlabel style={font=\color{white!15!black}},
+xlabel={Number of Dipoles},
+ymin=0,
+ymax=0.06,
+ylabel style={font=\color{white!15!black}},
+ylabel={Computation Time (s)},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={Runtime of normObjectiveFunction\_rad vs Dipole Count},
+xmajorgrids,
+ymajorgrids
+]
+\addplot [color=mycolor1, line width=2.0pt, mark=o, mark options={solid, mycolor1}, forget plot]
+  table[row sep=crcr]{%
+10	0.00053639975\\
+30	0.00104694735\\
+49	0.00201430965\\
+69	0.00334400965\\
+89	0.00418852965\\
+109	0.00487148965\\
+128	0.00699184965\\
+148	0.00789970965\\
+168	0.00902066965\\
+188	0.01207726965\\
+207	0.01301398965\\
+227	0.01410516965\\
+247	0.01556090965\\
+267	0.01707382965\\
+286	0.01765348965\\
+306	0.01886824965\\
+326	0.02018228965\\
+346	0.02147956965\\
+365	0.02318664965\\
+385	0.02455258965\\
+405	0.02534900965\\
+425	0.02659222965\\
+444	0.02764628965\\
+464	0.02908738965\\
+484	0.03047628965\\
+504	0.03207716965\\
+523	0.03386860965\\
+543	0.03518694965\\
+563	0.03641404965\\
+583	0.03800928965\\
+602	0.03958100965\\
+622	0.04109622965\\
+642	0.04228656965\\
+662	0.04344862965\\
+681	0.04466578965\\
+701	0.04560700965\\
+721	0.04689660965\\
+741	0.04876498965\\
+760	0.05033612965\\
+780	0.05178478965\\
+};
+\end{axis}
+\end{tikzpicture}%

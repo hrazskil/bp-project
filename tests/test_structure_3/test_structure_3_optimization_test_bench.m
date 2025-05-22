@@ -4,12 +4,15 @@ clc; clear; close all;
 %% Load saved far-field data
 load('tests/test_structure_3/BTSdataVertical.tsv');   % vertical far-field data
 load('tests/test_structure_3/BTSdataHorizontal.tsv'); % horizontal far-field data
+load('tests/test_structure_3/BTS.mat')
 
-%% Number of observation points
-Nbeta = size(BTSdataHorizontal(:,2),1);  % number of azimuthal observations
-Nphi = size(BTSdataVertical(:,2),1);     % number of elevation observations
+dipoleRef=dip;
 
-% Reconstruct Cartesian observation points from angles
+% Determine number of observation points from data files
+Nbeta = size(BTSdataHorizontal(:,2),1);  
+Nphi = size(BTSdataVertical(:,2),1);    
+
+% Reconstruct observation point vectors from saved angular values
 x1 = cos(BTSdataVertical(:,1));
 y1 = 0*x1;
 z1 = sin(BTSdataVertical(:,1));
@@ -18,21 +21,31 @@ x2 = cos(BTSdataHorizontal(:,1));
 y2 = sin(BTSdataHorizontal(:,1));
 z2 = 0*x2;
 
-vertical_points = [x1, y1, z1];
-horizontal_points = [x2, y2, z2];
+vertical_points = [x1(:,1), y1(:,1), z1(:,1)];
+horizontal_points = [x2(:,1), y2(:,1), z2(:,1)];
 
-% Create input data structure for optimization
-inputData.horizontal.rad = BTSdataHorizontal(:,2);
-inputData.horizontal.points = horizontal_points;
-inputData.horizontal.weights = ones(Nbeta, 1);
-inputData.horizontal.totalPower = sum(inputData.horizontal.rad);
+% Assemble structured input data for optimization
+inputData.horizontal.rad        = BTSdataHorizontal(:,2);
+inputData.horizontal.points     = horizontal_points;
+inputData.horizontal.weights    = ones(Nbeta, 1);  % Uniform weights
 
-inputData.vertical.rad = BTSdataVertical(:,2);
-inputData.vertical.points = vertical_points;
-inputData.vertical.weights = ones(Nphi, 1);
-inputData.vertical.totalPower = sum(inputData.vertical.rad);
+inputData.horizontal.totalPower = ...
+    sum((inputData.horizontal.rad .* inputData.horizontal.weights));
 
-inputData.freq = 785000000.000000;
+inputData.vertical.rad          = BTSdataVertical(:,2);
+inputData.vertical.points       = vertical_points;
+inputData.vertical.weights      = ones(Nbeta, 1);  % Uniform weights
+
+inputData.vertical.totalPower = ...
+    sum((inputData.vertical.rad .* inputData.vertical.weights));
+
+inputData.freq = f0List;  % Frequency list used in computation
+
+
+tic
+    error = optimization.normObjectiveFunction_rad(dipoleRef, inputData);
+    toc
+    disp(['Initial Test reference to inputData: ', num2str(error)]);
 
 %% Dipole grid generation
 % === Parameters for Crossed Dipole "Pluses" ===
@@ -107,7 +120,7 @@ for i = 1:numPluses
     % Append to dipole structure
     dip.pos        = [dip.pos; dipGrid.pos];
     dip.dir        = [dip.dir; dipGrid.dir];
-    dip.complAmpl  = [dip.complAmpl; dipGrid.complAmpl];
+    dip.complAmpl  = [dip.complAmpl; dipGrid.complAmpl*eps];
 end
 
 % === Optional Visualization ===
@@ -127,46 +140,61 @@ disp('Dipole structure saved to halfwaveDipole.mat.');
 % Extract numDipoles
 numDipoles = numel(dip.complAmpl);
 
-% Compute the maximum magnitude across all dipole amplitudes
-maxAmp = max(abs(dip.complAmpl));
-
-% Normalize the complex amplitudes
-dipoleRef = dip;
-dipoleRef.complAmpl = dip.complAmpl / maxAmp;
-
 %% --- 2 Perturbation of Initial Amplitudes ---
-% Generate complex perturbation factors with small variations
-perturbationFactor = 1 + 0.1 * (randn(numDipoles, 1));
+perturbationFactor = 0.1*abs(dip.complAmpl).*(randn(numDipoles, 1)+1i*randn(numDipoles, 1));
+dipolePer = dip;
+dipolePer.complAmpl = dip.complAmpl + perturbationFactor;
 
-% Apply perturbations to the normalized complex amplitudes
-perturbedAmp = dipoleRef.complAmpl .* perturbationFactor;
 
-% Normalize the perturbed amplitudes
-maxPerturbedAmp = max(abs(perturbedAmp));
-dipolePerturbedRef = dip;
-dipolePerturbedRef.complAmpl = perturbedAmp / maxPerturbedAmp;
+%% Normalize dipole amplitudes
+    % Define physical constants
+    construct = utilities.constants.giveConstants();
+    omega = 2 * pi * inputData.freq;  % Angular frequency
+    k = omega / construct.c0;    % Wavenumber
+    rFar = 1e6 / k;              % Large observation distance
 
-% Use perturbed amplitudes for error evaluation
-dip.complAmpl = dipolePerturbedRef.complAmpl;
-tic
-error = optimization.normObjectiveFunction_rad(dip, inputData);
-toc
-disp(['Initial Test Error perturbed dip: ', num2str(error)]);
+    % degree: { 6, 14, 26, 38, 50, 74, 86, 110, 146, 170, 194, 230, 266, 302,
+    %     350, 434, 590, 770, 974, 1202, 1454, 1730, 2030, 2354, 2702, 3074,
+    %     3470, 3890, 4334, 4802, 5294, 5810 };
+    Nleb = 302;                 % Number of Lebedev quadrature points
+
+    % Get Lebedev quadrature points and weights
+    [points, weights, ~] = utilities.getLebedevSphere(Nleb);
+    rObserved = points * rFar;   % Scale points to observation distance
+
+    % Compute far-field patterns
+    % fF_ref = fieldEvaluation.farFieldM2(rObserved, dipoleRef, inputData.freq);
+    fF_Per = fieldEvaluation.farFieldM2(rObserved, dipolePer, inputData.freq);
+
+    % Compute total radiated power for normalization
+    % totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
+    totalPower_Per = sum(sum(fF_Per .* conj(fF_Per), 2) .* weights) / (2 * construct.Z0);
+
+    % normalize
+    % dipoleRef.complAmpl = dipoleRef.complAmpl / sqrt(totalPower_ref);
+    dipolePer.complAmpl = dipolePer.complAmpl / sqrt(totalPower_Per);
+    
+    
+
+    tic
+    error = optimization.normObjectiveFunction_rad(dipolePer, inputData);
+    toc
+    disp(['Initial Test reference to inputData After Normalization: ', num2str(error)]);
 
 %% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePer, inputData.freq, 180, 360);
 
 %% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePer, inputData.freq, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePer, inputData.freq, 180, 360);
 
 %% --- 3. Optimization Using PSO ---
 
 % --- Define Bounds ---
-realPert = real(dipolePerturbedRef.complAmpl);
-imagPert = imag(dipolePerturbedRef.complAmpl);
+realPert = real(dipolePer.complAmpl);
+imagPert = imag(dipolePer.complAmpl);
 
 ampMinReal = min(realPert);  ampMaxReal = max(realPert);
 ampMinImag = min(imagPert);  ampMaxImag = max(imagPert);
@@ -176,10 +204,10 @@ uB = [ampMaxReal * ones(numDipoles, 1); ampMaxImag * ones(numDipoles, 1)];
 
 % --- Initialize PSO Parameters ---
 % Combine real and imaginary parts into a single initial guess vector
-initialGuess = [real(dipolePerturbedRef.complAmpl); imag(dipolePerturbedRef.complAmpl)]';
+initialGuess = [real(dipolePer.complAmpl); imag(dipolePer.complAmpl)]';
 
 % Create swarm matrix by replicating the initial guess (each row is a particle)
-swarmSize = numDipoles/2;  % Swarm size is double the number of dipoles (real + imag)
+swarmSize = numDipoles/4;  % Swarm size is double the number of dipoles (real + imag)
 initialSwarmMatrix = repmat(initialGuess, swarmSize, 1);
 
 % Define PSO optimization settings
@@ -228,7 +256,7 @@ options_fmincon = optimoptions('fmincon', ...
 
 optimFun_fmincon = @(amp) ...
     optimization.normObjectiveFunction(amp(1:numDipoles).' + ...
-    1i * amp(numDipoles+1:end).', dip, frequency, points, weights, ...
+    1i * amp(numDipoles+1:end).', dip, inputData.freq, points, weights, ...
     fF_ref, totalPower_ref);
 
 [optAmps_fmincon_vec, finalError_fmincon] = fmincon(optimFun_fmincon,...
@@ -242,24 +270,12 @@ disp(['Final Error (fmincon): ', num2str(finalError_fmincon)]);
 dipoleFmincon = dipoleRef;
 dipoleFmincon.complAmpl = optAmps_fmincon;
 
-fF_Fmincon = fieldEvaluation.farFieldM2(rObserved, dipoleFmincon, frequency);
-totalPower_Fmincon = sum(sum(fF_Fmincon .* conj(fF_Fmincon), 2) .* weights) / (2 * construct.Z0);
-
-
-
-simAmpReal = real(dipoleFmincon.complAmpl);
-simAmpImag = imag(dipoleFmincon.complAmpl);
-normalizedsimAmpReal = simAmpReal * max(abs(simAmpReal));
-normalizedsimAmpImag = simAmpImag * max(abs(simAmpImag));
-
-dipoleFmincon.complAmpl = normalizedsimAmpReal + ...
-                               1i * normalizedsimAmpImag;
 % Fmincon Plot
 %% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360);
 
 %% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+utilities.visualizations.plotFarFieldComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, frequency, 180, 360);
+utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipoleFmincon, inputData.freq, 180, 360);

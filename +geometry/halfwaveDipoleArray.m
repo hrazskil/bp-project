@@ -37,11 +37,12 @@ function dip = halfwaveDipoleArray(dipoleLength, numDipoles, rotationAngleRad, p
     dirs = repmat([0, 0, 1], numDipoles, 1);
     dirs = (Rx * dirs.').';
 
-    % Default amplitudes if none given
+    % Compute normalized z for sinusoidal amplitude generation
+    zNorm = zCenters / (dipoleLength / 2);  % Normalized to range [-1, 1]
     if nargin < 5 || isempty(amplitudes)
-        amplitudes = ones(numDipoles, 1);
+    amplitudes = sin(pi * (1 - abs(zNorm)));  % Sinusoidal standing wave profile
     end
-
+    
     if length(amplitudes) ~= numDipoles
         error('Length of amplitudes must match numDipoles.');
     end
