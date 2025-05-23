@@ -10,6 +10,9 @@ load('tests/test_structure_3/BTS.mat')
 
 dipoleRef=dip;
 
+%% === Near-Field PowerFlux: Reference ===
+utilities.visualizations.PowerFluxXZ(dipoleRef, f0List, [-0.5, 2.4], [-0.5, 0.5], 200);
+
 % Extract angles
 theta_vert  = Fth_vert_raw(:,1);  % angle in XZ plane (elevation sweep)
 phi_horiz   = Fth_horiz_raw(:,1); % angle in XY plane (azimuth sweep)
