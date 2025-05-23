@@ -69,55 +69,47 @@ intensity_diff = abs(intensity_opt_norm - intensity_ref_norm);
 % clim(refCaxis);  % Apply reference color scale
 % pbaspect([2 1 1]);       % Set aspect ratio
 
-%% --- Figure 1: Reference and Optimized (Shared Colorbar & CLim) ---
-figure('Name','Far-Field Intensity: Reference vs Optimized');
-
-tiledlayout(2,1, 'TileSpacing','compact', 'Padding','compact'); % Only 2 tiles
-
-% --- Reference ---
-ax1 = nexttile;
-imagesc(phi/pi, theta/pi, intensity_ref_norm);
-xlabel('\phi/\pi'); ylabel('\theta/\pi');
-title('Reference Intensity');
-axis xy; pbaspect([2 1 1]);
-refCaxis = clim;  % Save caxis
-
-% --- Optimized ---
-ax2 = nexttile;
-imagesc(phi/pi, theta/pi, intensity_opt_norm);
-xlabel('\phi/\pi'); ylabel('\theta/\pi');
-title('Optimized Intensity');
-axis xy; pbaspect([2 1 1]);
-clim(refCaxis);  % Match color scale
-
-% --- Shared Colorbar ---
-cb = colorbar(ax2, 'Location', 'eastoutside');
-cb.Label.String = 'Normalized Intensity';
-
-% Match clim
-clim(ax1, refCaxis);
-clim(ax2, refCaxis);
-
-colormap("bone");
-set(gcf, 'Color', 'w');
-
-% % --- Plot 3: Difference ---
-% subplot(3,1,3);
-% imagesc(phi/pi, theta/pi, intensity_diff);
-%     xlabel('\phi/\pi'); ylabel('\theta/\pi');
-% title('Difference (Optimized - Reference)');
-% colorbar; axis xy;
-% pbaspect([2 1 1]);       % Set aspect ratio
-
-% %% --- Figure 2: Difference ---
-% figure('Name','Far-Field Intensity Difference');
+% %% --- Figure 1: Reference and Optimized (Shared Colorbar & CLim) ---
+% figure('Name','Far-Field Intensity: Reference vs Optimized');
 % 
-% imagesc(phi/pi, theta/pi, intensity_diff);
+% tiledlayout(2,1, 'TileSpacing','compact', 'Padding','compact'); % Only 2 tiles
+% 
+% % --- Reference ---
+% ax1 = nexttile;
+% imagesc(phi/pi, theta/pi, intensity_ref_norm);
 % xlabel('\phi/\pi'); ylabel('\theta/\pi');
-% title('Difference (Optimized - Reference)');
+% title('Reference Intensity');
 % axis xy; pbaspect([2 1 1]);
-% colorbar;
+% refCaxis = clim;  % Save caxis
+% 
+% % --- Optimized ---
+% ax2 = nexttile;
+% imagesc(phi/pi, theta/pi, intensity_opt_norm);
+% xlabel('\phi/\pi'); ylabel('\theta/\pi');
+% title('Optimized Intensity');
+% axis xy; pbaspect([2 1 1]);
+% clim(refCaxis);  % Match color scale
+% 
+% % --- Shared Colorbar ---
+% cb = colorbar(ax2, 'Location', 'eastoutside');
+% cb.Label.String = 'Normalized Intensity';
+% 
+% % Match clim
+% clim(ax1, refCaxis);
+% clim(ax2, refCaxis);
+% 
 % colormap("bone");
 % set(gcf, 'Color', 'w');
+
+%% --- Figure 2: Difference ---
+figure('Name','Far-Field Intensity Difference');
+
+imagesc(phi/pi, theta/pi, intensity_diff);
+xlabel('\phi/\pi'); ylabel('\theta/\pi');
+title('Difference (Optimized - Reference)');
+axis xy; pbaspect([2 1 1]);
+colorbar;
+colormap("bone");
+set(gcf, 'Color', 'w');
 end
 

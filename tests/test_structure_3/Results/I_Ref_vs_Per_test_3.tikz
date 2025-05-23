@@ -1,0 +1,94 @@
+% This file was created by matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.656\figurewidth,
+height=0.437\figureheight,
+at={(0\figurewidth,0.563\figureheight)},
+scale only axis,
+point meta min=4.90062305438266e-08,
+point meta max=1,
+axis on top,
+xmin=-0.00278551532033426,
+xmax=2.00278551532033,
+ymin=-0.00279329608938547,
+ymax=1.00279329608939,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\theta\text{/}\pi$},
+ytick={0,0.5,1},
+axis background/.style={fill=white},
+title={Reference},
+title style={font=\large},
+label style={font=\large},
+y tick label style={
+	/pgf/number format/.cd,
+	fixed,
+	fixed zerofill,
+	precision=1,
+	/tikz/.cd
+},
+x tick label style={
+	/pgf/number format/.cd,
+	fixed,
+	fixed zerofill,
+	precision=1,
+	/tikz/.cd
+},
+ticklabel style={font=\large},
+]
+\addplot [forget plot] graphics [xmin=-0.00278551532033426, xmax=2.00278551532033, ymin=-0.00279329608938547, ymax=1.00279329608939] {I_Ref_vs_Per_Diff_test_3-1.png};
+\end{axis}
+
+\begin{axis}[%
+width=0.656\figurewidth,
+height=0.437\figureheight,
+at={(0\figurewidth,0\figureheight)},
+scale only axis,
+point meta min=4.90062305438266e-08,
+point meta max=1,
+axis on top,
+xmin=-0.00278551532033426,
+xmax=2.00278551532033,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\phi\text{/}\pi$},
+ymin=-0.00279329608938547,
+ymax=1.00279329608939,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\theta\text{/}\pi$},
+ytick={0,0.5,1},
+axis background/.style={fill=white},
+title={Perturbed},
+title style={font=\large},
+label style={font=\large},
+ticklabel style={font=\large},
+y tick label style={
+	/pgf/number format/.cd,
+	fixed,
+	fixed zerofill,
+	precision=1,
+	/tikz/.cd
+},
+x tick label style={
+	/pgf/number format/.cd,
+	fixed,
+	fixed zerofill,
+	precision=1,
+	/tikz/.cd
+},
+colormap={mymap}{[1pt] rgb(0pt)=(0,0,0.00130208); rgb(95pt)=(0.32598,0.32598,0.45098); rgb(191pt)=(0.655392,0.780392,0.780392); rgb(255pt)=(1,1,1)},
+colorbar,
+colorbar style={
+	tick style={black},
+	ticklabel style={
+		/pgf/number format/.cd,
+		fixed,
+		precision=1,
+		/tikz/.cd
+	},
+	ytick={0.2,0.4,0.6,0.8},
+}
+]
+\addplot [forget plot] graphics [xmin=-0.00278551532033426, xmax=2.00278551532033, ymin=-0.00279329608938547, ymax=1.00279329608939] {I_Ref_vs_Per_Diff_test_3-2.png};
+\end{axis}
+\end{tikzpicture}%
