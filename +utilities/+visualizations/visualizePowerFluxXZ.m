@@ -26,4 +26,3 @@ title('S_x Mean (W/m^2) — Power Flux in x-Direction');
 colorbar;
 colormap('hot');  % or 'parula', 'bone', etc.
 end
-end
