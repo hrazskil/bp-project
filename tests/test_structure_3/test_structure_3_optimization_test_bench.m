@@ -2,45 +2,49 @@
 clc; clear; close all;
 
 %% Load saved far-field data
-load('tests/test_structure_3/BTSdataVertical.tsv');   % vertical far-field data
-load('tests/test_structure_3/BTSdataHorizontal.tsv'); % horizontal far-field data
+Fth_vert_raw   = load('tests/test_structure_3/BTSxzCutFth.tsv');   % vertical θ-cut
+Fph_vert_raw   = load('tests/test_structure_3/BTSxzCutFph.tsv');   % vertical φ-cut
+Fth_horiz_raw  = load('tests/test_structure_3/BTSxyCutFth.tsv');   % horizontal θ-cut
+Fph_horiz_raw  = load('tests/test_structure_3/BTSxyCutFph.tsv');   % horizontal φ-cut
 load('tests/test_structure_3/BTS.mat')
 
 dipoleRef=dip;
 
-% Determine number of observation points from data files
-Nbeta = size(BTSdataHorizontal(:,2),1);  
-Nphi = size(BTSdataVertical(:,2),1);    
+% Extract angles
+theta_vert  = Fth_vert_raw(:,1);  % angle in XZ plane (elevation sweep)
+phi_horiz   = Fth_horiz_raw(:,1); % angle in XY plane (azimuth sweep)
 
-% Reconstruct observation point vectors from saved angular values
-x1 = cos(BTSdataVertical(:,1));
-y1 = 0*x1;
-z1 = sin(BTSdataVertical(:,1));
+% Extract field magnitudes
+Fth_vert  = Fth_vert_raw(:,2);
+Fph_vert  = Fph_vert_raw(:,2);
+Fth_horiz = Fth_horiz_raw(:,2);
+Fph_horiz = Fph_horiz_raw(:,2);
 
-x2 = cos(BTSdataHorizontal(:,1));
-y2 = sin(BTSdataHorizontal(:,1));
-z2 = 0*x2;
+% === Compute Total Intensity ===
+intensity_vert  = Fth_vert.^2 + Fph_vert.^2;
+intensity_horiz = Fth_horiz.^2 + Fph_horiz.^2;
 
-vertical_points = [x1(:,1), y1(:,1), z1(:,1)];
-horizontal_points = [x2(:,1), y2(:,1), z2(:,1)];
+% === Reconstruct observation directions ===
+% Vertical (XZ plane): θ-sweep
+x1 = sin(theta_vert); y1 = zeros(size(x1)); z1 = cos(theta_vert);
+vertical_points = [x1, y1, z1];
 
-% Assemble structured input data for optimization
-inputData.horizontal.rad        = BTSdataHorizontal(:,2);
+% Horizontal (XY plane): φ-sweep
+x2 = cos(phi_horiz); y2 = sin(phi_horiz); z2 = zeros(size(x2));
+horizontal_points = [x2, y2, z2];
+
+% === Assemble inputData ===
+inputData.vertical.rad        = intensity_vert;
+inputData.vertical.points     = vertical_points;
+inputData.vertical.weights    = ones(size(intensity_vert));
+inputData.vertical.totalPower = sum(intensity_vert);
+
+inputData.horizontal.rad        = intensity_horiz;
 inputData.horizontal.points     = horizontal_points;
-inputData.horizontal.weights    = ones(Nbeta, 1);  % Uniform weights
+inputData.horizontal.weights    = ones(size(intensity_horiz));
+inputData.horizontal.totalPower = sum(intensity_horiz);
 
-inputData.horizontal.totalPower = ...
-    sum((inputData.horizontal.rad .* inputData.horizontal.weights));
-
-inputData.vertical.rad          = BTSdataVertical(:,2);
-inputData.vertical.points       = vertical_points;
-inputData.vertical.weights      = ones(Nbeta, 1);  % Uniform weights
-
-inputData.vertical.totalPower = ...
-    sum((inputData.vertical.rad .* inputData.vertical.weights));
-
-inputData.freq = f0List;  % Frequency list used in computation
-
+inputData.freq = f0List(1);  % If f0List is a vector, use first entry
 
 tic
     error = optimization.normObjectiveFunction_rad(dipoleRef, inputData);
@@ -51,7 +55,7 @@ tic
 % === Parameters for Crossed Dipole "Pluses" ===
 numPluses = 4;                    % Total number of pluses
 dipoleLength = 1;              % Length of each dipole [m]
-numDipolesPerArm = 20;            % Dipoles per arm (X and Z)
+numDipolesPerArm = 30;            % Dipoles per arm (X and Z)
 offsetStep = 1.5;                % Spacing between pluses along Z
 rotationX = pi/2;                 % Dipoles along Z (vertical arm)
 rotationY = 0;                    % Dipoles along X (horizontal arm)
@@ -82,8 +86,8 @@ for i = 1:numPluses
 end
 
 % === Grid Parameters (YZ-plane) ===
-gridSizeY = 5;                   % Number of points along Y
-gridSizeZ = 5;                   % Number of points along Z
+gridSizeY = 6;                   % Number of points along Y
+gridSizeZ = 6;                   % Number of points along Z
 gridWidthY = 1;                % Total physical width along Y [m]
 gridHeightZ = 1;               % Total physical height along Z [m]
 gridOffsetX = -0.38;             % X-offset behind each plus
@@ -163,15 +167,15 @@ dipolePer.complAmpl = dip.complAmpl + perturbationFactor;
     rObserved = points * rFar;   % Scale points to observation distance
 
     % Compute far-field patterns
-    % fF_ref = fieldEvaluation.farFieldM2(rObserved, dipoleRef, inputData.freq);
+    fF_ref = fieldEvaluation.farFieldM2(rObserved, dipoleRef, inputData.freq);
     fF_Per = fieldEvaluation.farFieldM2(rObserved, dipolePer, inputData.freq);
 
     % Compute total radiated power for normalization
-    % totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
+    totalPower_ref = sum(sum(fF_ref .* conj(fF_ref), 2) .* weights) / (2 * construct.Z0);
     totalPower_Per = sum(sum(fF_Per .* conj(fF_Per), 2) .* weights) / (2 * construct.Z0);
 
     % normalize
-    % dipoleRef.complAmpl = dipoleRef.complAmpl / sqrt(totalPower_ref);
+    dipoleRef.complAmpl = dipoleRef.complAmpl / sqrt(totalPower_ref);
     dipolePer.complAmpl = dipolePer.complAmpl / sqrt(totalPower_Per);
     
     
@@ -180,12 +184,6 @@ dipolePer.complAmpl = dip.complAmpl + perturbationFactor;
     error = optimization.normObjectiveFunction_rad(dipolePer, inputData);
     toc
     disp(['Initial Test reference to inputData After Normalization: ', num2str(error)]);
-
-%% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePer, inputData.freq, 180, 360);
-
-%% === Far-Field Comparison: Optimized vs Reference ===
-utilities.visualizations.plotFarFieldComparison(dipoleRef, dipolePer, inputData.freq, 180, 360);
 
 %% === Far-Field Intensity Comparison: Optimized vs Reference ===
 utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePer, inputData.freq, 180, 360);
@@ -207,7 +205,7 @@ uB = [ampMaxReal * ones(numDipoles, 1); ampMaxImag * ones(numDipoles, 1)];
 initialGuess = [real(dipolePer.complAmpl); imag(dipolePer.complAmpl)]';
 
 % Create swarm matrix by replicating the initial guess (each row is a particle)
-swarmSize = numDipoles/4;  % Swarm size is double the number of dipoles (real + imag)
+swarmSize = numDipoles/2;  % Swarm size is double the number of dipoles (real + imag)
 initialSwarmMatrix = repmat(initialGuess, swarmSize, 1);
 
 % Define PSO optimization settings
@@ -231,6 +229,7 @@ optimFun = @(amp) optimization.optimFunX(amp, dip, inputData, numDipoles);
 % --- Run Particle Swarm Optimization ---
 % Optimize dipole amplitudes to match far-field radiation
 [optAmps_pso_vec, finalError_pso] = particleswarm(optimFun, 2 * numDipoles, lB, uB, options_pso);
+
 
 % Combine optimized real and imaginary parts into complex amplitudes
 optAmps_pso = nan(numDipoles,1);

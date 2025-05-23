@@ -109,15 +109,15 @@ set(gcf, 'Color', 'w');
 % colorbar; axis xy;
 % pbaspect([2 1 1]);       % Set aspect ratio
 
-%% --- Figure 2: Difference ---
-figure('Name','Far-Field Intensity Difference');
-
-imagesc(phi/pi, theta/pi, intensity_diff);
-xlabel('\phi/\pi'); ylabel('\theta/\pi');
-title('Difference (Optimized - Reference)');
-axis xy; pbaspect([2 1 1]);
-colorbar;
-colormap("bone");
-set(gcf, 'Color', 'w');
+% %% --- Figure 2: Difference ---
+% figure('Name','Far-Field Intensity Difference');
+% 
+% imagesc(phi/pi, theta/pi, intensity_diff);
+% xlabel('\phi/\pi'); ylabel('\theta/\pi');
+% title('Difference (Optimized - Reference)');
+% axis xy; pbaspect([2 1 1]);
+% colorbar;
+% colormap("bone");
+% set(gcf, 'Color', 'w');
 end
 

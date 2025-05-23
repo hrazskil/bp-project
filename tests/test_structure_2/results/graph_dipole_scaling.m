@@ -4,8 +4,8 @@
 load('results/test_structure_2_N_dip_scaling.mat', 'results');
 load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_2\DipoleArray.mat');
 
-Ntheta = 90;
-Nphi = 180;
+Ntheta = 180;
+Nphi = 360;
 phi = linspace(0, 2*pi, Nphi);
 theta = linspace(0, pi, Ntheta).';
 
@@ -56,21 +56,66 @@ end
 % Use max of last case or global max for consistency
 clim = [0, max(max_vals)];
 
-% Plotting
-nCols = 2;
-nRows = ceil(numel(results)/nCols);
-figure('Name', 'Far-Field Difference Comparison', 'Color', 'w');
+% === LaTeX-compatible defaults ===
+set(groot, 'defaultTextInterpreter', 'latex');
+set(groot, 'defaultAxesTickLabelInterpreter', 'latex');
+set(groot, 'defaultLegendInterpreter', 'latex');
 
-for i = 1:numel(results)
-    subplot(nRows, nCols, i);
-    imagesc(phi/pi, theta/pi, intensity_diff_all{i});
-    title(sprintf('%d Dipoles', results(i).Ndip));
-    xlabel('\phi/\pi'); ylabel('\theta/\pi');
-    axis xy; pbaspect([2 1 1]);
+% === PLOTTING ===
+% Layout constants
+nCols = 4;
+subplotWidth = 0.14;
+subplotHeight = 0.8;
+hSpacing = 0.015;
+leftMargin = 0.02;
+bottomMargin = 0.15;
+cbWidth = 0.015;
+cbHeight = 0.75;
+
+% Overall figure
+figure('Color', 'w', 'Units', 'centimeters', 'Position', [2 2 18 6]);
+
+% Compute global clim for consistency
+clim = [0, max(cellfun(@(A) max(A(:)), intensity_diff_all(1:4)))];
+
+% Plot each subplot
+for j = 1:nCols
+    left = leftMargin + (j-1)*(subplotWidth + hSpacing);
+    ax = axes('Position', [left, bottomMargin, subplotWidth, subplotHeight]);
+
+    imagesc(theta/pi, phi/pi, intensity_diff_all{j});
+    axis xy;
+    pbaspect([1 2 1]);
+    colormap('bone');
     caxis(clim);
+
+    if j == 1
+        xlabel('$\theta/\pi$', 'Interpreter', 'latex');
+        ylabel('$\phi/\pi$', 'Interpreter', 'latex');
+    else
+        set(gca, 'XTickLabel', [], 'YTickLabel', []);
+    end
 end
 
-% Shared colorbar
-cb = colorbar('Position', [0.93 0.1 0.02 0.8]);
+% Set axes units for TikZ compatibility
+set(findall(gcf, 'Type', 'axes'), 'Units', 'centimeters');
+
+% Add colorbar
+cbLeft = left + subplotWidth + 0.01;
+cbBottom = bottomMargin + 0.02;
+cb = colorbar('Position', [cbLeft, cbBottom, cbWidth, cbHeight]);
 cb.Label.String = 'Normalized Difference';
-colormap('bone');
+cb.Label.Interpreter = 'latex';
+cb.Label.FontSize = 10;
+
+% === EXPORT ===
+matlab2tikz('FF_I_Ref_vs_Opt_Diff_dip_1.tikz', ...
+    'width', '\figurewidth', ...
+    'height', '\figureheight', ...
+    'showInfo', false, ...
+    'extraAxisOptions', {
+        'tick label style={font=\scriptsize}', ...
+        'label style={font=\normalsize}', ...
+        'title style={font=\normalsize}', ...
+        'colormap name=bone' ...
+    });

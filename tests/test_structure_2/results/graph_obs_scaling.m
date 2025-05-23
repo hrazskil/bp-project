@@ -6,8 +6,8 @@ load('C:\Users\kilia\Plocha\gitHub\bp-project\tests\test_structure_2\DipoleArray
 
 
 %% Grid settings
-Ntheta = 90;
-Nphi = 180;
+Ntheta = 180;
+Nphi = 360;
 theta = linspace(0, pi, Ntheta).';
 phi   = linspace(0, 2*pi, Nphi);
 [PHI, THETA] = meshgrid(phi, theta);
@@ -44,53 +44,69 @@ for i = 1:numel(results)
     intensity_diff_all{i} = diff;
     range_vals(i) = max(diff(:)) - min(diff(:));
 end
+%%
+% Set LaTeX-compatible interpreters globally
+set(groot, 'defaultTextInterpreter', 'latex');
+set(groot, 'defaultAxesTickLabelInterpreter', 'latex');
+set(groot, 'defaultLegendInterpreter', 'latex');
 
-%% Plotting
+% Set parameters
+nCols = numel(results);
 clim = [0, max(range_vals)];
-NobsList = [results.Nobs];
-nCols = 3;
-nRows = ceil(numel(results)/nCols);
 
-figure('Name', 'Far-Field Comparison: Varying Nobs', 'Color', 'w');
-for i = 1:numel(results)
-    subplot(nRows, nCols, i);
-    imagesc(phi/pi, theta/pi, intensity_diff_all{i});
-    title(sprintf('%d Obs Points', NobsList(i)));
-    xlabel('\phi/\pi'); ylabel('\theta/\pi');
-    axis xy; pbaspect([2 1 1]);
-    caxis(clim);
-end
+% Layout parameters
+subplotWidth = 0.14;
+subplotHeight = 0.8;
+hSpacing = 0.015;
+leftMargin = 0.02;
+bottomMargin = 0.15;
 
-% Shared colorbar
-cb = colorbar('Position', [0.93 0.1 0.02 0.8]);
-cb.Label.String = 'Normalized Difference';
-colormap('bone');
+% Create figure
+figure('Color', 'w', 'Units', 'centimeters', 'Position', [2 2 18 6]);
 
-% Split into groups of 4
-groupSize = 4;
-numGroups = ceil(numel(results) / groupSize);
+for i = 1:nCols
+    % Compute position of each subplot
+    left = leftMargin + (i-1)*(subplotWidth + hSpacing);
+    ax = axes('Position', [left, bottomMargin, subplotWidth, subplotHeight]);
 
-for g = 1:numGroups
-    figure('Name', sprintf('Far-Field Difference Comparison: Group %d', g), 'Color', 'w');
-
-    % Determine indices for this group
-    idxStart = (g-1)*groupSize + 1;
-    idxEnd = min(g*groupSize, numel(results));
-    groupIdx = idxStart:idxEnd;
-    
-    for j = 1:length(groupIdx)
-        subplot(2, 2, j);  % 2 rows x 2 columns for 4 plots
-        i = groupIdx(j);
-
-        imagesc(phi/pi, theta/pi, intensity_diff_all{i});
-        title(sprintf('%d Dipoles', results(i).Ndip));
-        xlabel('\phi/\pi'); ylabel('\theta/\pi');
-        axis xy; pbaspect([2 1 1]);
-        caxis(clim);
-    end
-
-    % Shared colorbar to the right of subplot (approximate position)
-    cb = colorbar('Position', [0.91 0.1 0.02 0.8]);
-    cb.Label.String = 'Normalized Difference';
+    % Plot data
+    imagesc(theta/pi, phi/pi, intensity_diff_all{i});
+    axis xy;
+    pbaspect([1 2 1]);
     colormap('bone');
+    caxis(clim);
+
+    % Labels only on first
+    if i == 1
+        xlabel('$\theta/\pi$', 'Interpreter', 'latex');
+        ylabel('$\phi/\pi$', 'Interpreter', 'latex');
+    else
+        set(gca, 'XTickLabel', [], 'YTickLabel', []);
+    end
 end
+
+% Ensure all axes are in physical units (not 'normalized')
+set(findall(gcf,'Type','axes'), 'Units', 'centimeters');
+
+% Add shared colorbar manually
+cbWidth = 0.015;
+cbHeight = 0.75;
+cbLeft = left + subplotWidth + 0.01;  % after last plot
+cbBottom = bottomMargin + 0.025;
+
+cb = colorbar('Position', [cbLeft, cbBottom, cbWidth, cbHeight]);
+cb.Label.String = 'Normalized Difference';
+cb.Label.Interpreter = 'latex';
+cb.Label.FontSize = 10;
+
+% --- Export to TikZ ---
+matlab2tikz('FF_I_Ref_vs_Per_Diff_obs.tikz', ...
+    'width', '\figurewidth', ...
+    'height', '\figureheight', ...
+    'showInfo', false, ...
+    'extraAxisOptions', {
+        'tick label style={font=\scriptsize}', ...
+        'label style={font=\normalsize}', ...
+        'title style={font=\normalsize}', ...
+        'colormap name=bone' ...
+    });
