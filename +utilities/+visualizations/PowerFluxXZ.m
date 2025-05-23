@@ -20,17 +20,19 @@ Sx = reshape(S(:,1), size(X));
 Sx(Sx < -250 | Sx > 250) = NaN;
 
 % Step 5: Plot with contourf
-levels = linspace(-250, 250, 50);  % Define the contour levels
+levels = linspace(-40, 245, 50);  % Define the contour levels
 
 %Filled contour plot (no edge lines)
 figure;
 
 % Step 1: Filled contours (without edge lines)
-contourf(x, z, Sx, levels, 'LineWidth', 1);
+contourf(x, z, Sx, levels, 'LineWidth', 0.5);
 colormap(parula);       % or customMap
 colorbar;
+clim([-250 250]);
 axis xy;
 xlabel('x [m]');
 ylabel('z [m]');
 title('S_x Mean (W/m^2)');
+clim()
 end
