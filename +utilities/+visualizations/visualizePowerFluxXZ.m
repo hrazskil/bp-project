@@ -12,18 +12,18 @@ rObserved = [X(:), Y(:), Z(:)];
 eF = fieldEvaluation.eleFieldM2(rObserved, dip, f);
 mF = fieldEvaluation.magFieldM2(rObserved, dip, f);
 
-% Step 3: Compute Poynting vector
+% Step 3: Compute Poynting vector and extract S_x
 S = fieldEvaluation.powerPoynting(eF, mF); % (nObs × 3)
-
-% Step 4: Reshape for plotting
 Sx = reshape(S(:,1), size(X));
-Sz = reshape(S(:,3), size(Z));
 
-% Step 5: Plot vector field
+% Step 4: Plot with imagesc
 figure;
-quiver(X, Z, Sx, Sz, 'k');
-axis equal;
+imagesc(x, z, Sx);
+axis xy;
 xlabel('x [m]');
 ylabel('z [m]');
-title('Power Flux (Poynting Vector) in xz-Plane');
+title('S_x Mean (W/m^2) — Power Flux in x-Direction');
+colorbar;
+colormap('hot');  % or 'parula', 'bone', etc.
+end
 end
