@@ -92,8 +92,8 @@
     % %% === Far-Field Comparison: Perturbed vs Reference ===
     % utilities.visualizations.plotFarFieldComponentComparison(dipoleRef, dipolePerturbed, inputData.freq, 180, 360);
 
-    %% === Far-Field Intensity Comparison: Perturbed vs Reference ===
-    utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbed, inputData.freq, 180, 360);
+    % %% === Far-Field Intensity Comparison: Perturbed vs Reference ===
+    % utilities.visualizations.plotFarFieldIntensityComparison(dipoleRef, dipolePerturbed, inputData.freq, 180, 360);
     %% --- 2. Optimization Using PSO FF---
     
     % --- Define Bounds ---

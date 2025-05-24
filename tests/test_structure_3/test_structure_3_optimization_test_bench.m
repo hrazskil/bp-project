@@ -258,6 +258,8 @@ totalPower_Opt = sum(sum(fF_Opt .* conj(fF_Opt), 2) .* weights) / (2 * construct
 dipoleRef.complAmpl = 10*dipoleRef.complAmpl / sqrt(totalPower_Opt);
 
 
-utilities.visualizations.PowerFluxXAxis(dipolePer, f0List, [-5.384807207388533e-01, 2.153922882955413e+00], 201, 'dipolePerXaxis')
-utilities.visualizations.PowerFluxXAxis(dipoleRef, f0List, [-5.384807207388533e-01, 2.153922882955413e+00], 201, 'dipoleRefXaxis')
-utilities.visualizations.PowerFluxXAxis(dipoleFmincon, f0List, [-5.384807207388533e-01, 2.153922882955413e+00], 201, 'dipoleFminconXaxis')
+utilities.visualizations.PowerFluxXAxis(dipolePer, f0List, [-5.384807207388533e-01, 2.153922882955413e+00], 201, 'dipolePerXaxis.tsv')
+utilities.visualizations.PowerFluxXAxis(dipoleRef, f0List, [-5.384807207388533e-01, 2.153922882955413e+00], 201, 'dipoleRefXaxis.tsv')
+utilities.visualizations.PowerFluxXAxis(dipoleFmincon, f0List, [-5.384807207388533e-01, 2.153922882955413e+00], 201, 'dipoleFminconXaxis.tsv')
+
+type('dipolePerXaxis.tsv')
